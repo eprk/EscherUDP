@@ -7,3 +7,4 @@ function ScalarLogicOut = ValidateIPv4(IpChar)
     else
         ScalarLogicOut = true;
     end
+end

@@ -5,4 +5,4 @@ function IpBinVector = IPv4Char2Bin(IpChar)
     IpBinMatrix = de2bi(IpDecVector,8,'left-msb');
 %     Rows and columns are swapped. And a column vector is obtained.
     IpBinVector = logical(reshape(IpBinMatrix',32,1));
-    
+end

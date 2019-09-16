@@ -11,3 +11,4 @@ function IpChar = IPv4Bin2Char(IpBinVector)
 %     Converts the IP numeric vector into a cell array of characters and
 %     then joins them with a separator point.
     IpChar = IPv4Vect2Char(IpDecVector);
+end

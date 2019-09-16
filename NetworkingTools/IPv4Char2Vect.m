@@ -15,3 +15,4 @@ function IpDecVector = IPv4Char2Vect(IpChar)
     IpDecVector = cast(cellfun(@str2double,Tokens{1},'un',1),'uint8');
 %     Makes sure to have a column vector
     IpDecVector = IpDecVector(:);
+end

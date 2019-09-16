@@ -7,3 +7,4 @@ function ScalarLogicOut = ValidateMac(MacChar)
     else
         ScalarLogicOut = true;
     end
+end

@@ -12,8 +12,8 @@ function [subfunc]=pco_camera_mysubfunction()
  fh_set_transferparameter=@set_transferparameter;
  fh_set_bitalignment=@set_bitalignment;
  fh_get_bitalignment=@get_bitalignment;
- fh_show_frametime=@show_frametime; 
- fh_get_frametime=@get_frametime; 
+ fh_show_frametime=@show_frametime;
+ fh_get_frametime=@get_frametime;
  fh_enable_timestamp=@enable_timestamp;
  fh_set_metadata_mode=@set_metadata_mode;
  fh_print_timestamp=@print_timestamp;
@@ -38,13 +38,13 @@ end
 
 function start_camera(out_ptr)
 
-act_recstate = uint16(0); 
+act_recstate = uint16(0);
 [errorCode,~,act_recstate] = calllib('PCO_CAM_SDK', 'PCO_GetRecordingState', out_ptr,act_recstate);
-pco_errdisp('PCO_GetRecordingState',errorCode);   
+pco_errdisp('PCO_GetRecordingState',errorCode);
 
 if(act_recstate~=1)
- errorCode = calllib('PCO_CAM_SDK', 'PCO_SetRecordingState', out_ptr, 1);
- pco_errdisp('PCO_SetRecordingState',errorCode);   
+ errorCode = calllib('PCO_CAM_SDK', 'PCO_SetRecordingState', out_ptr, uint16(1));
+ pco_errdisp('PCO_SetRecordingState',errorCode);
 end
 
 end
@@ -52,13 +52,13 @@ end
 
 function stop_camera(out_ptr)
 
-act_recstate = uint16(0); 
+act_recstate = uint16(0);
 [errorCode,~,act_recstate] = calllib('PCO_CAM_SDK', 'PCO_GetRecordingState', out_ptr,act_recstate);
-pco_errdisp('PCO_GetRecordingState',errorCode);   
+pco_errdisp('PCO_GetRecordingState',errorCode);
 
 if(act_recstate~=0)
  errorCode = calllib('PCO_CAM_SDK', 'PCO_SetRecordingState', out_ptr, 0);
- pco_errdisp('PCO_SetRecordingState',errorCode);   
+ pco_errdisp('PCO_SetRecordingState',errorCode);
 end
 
 end
@@ -327,7 +327,7 @@ function [txt,time]=print_timestamp(ima,act_align,bitpix)
  end 
 end
 
-function [txt,time]=print_timestamp_t(ima,act_align,bitpix)
+function [txt,time,ImgCounter]=print_timestamp_t(ima,act_align,bitpix)
 
  if(act_align==0)
   ts=fix(double(ima(1,1:14))/(2^(16-bitpix)));
@@ -335,16 +335,16 @@ function [txt,time]=print_timestamp_t(ima,act_align,bitpix)
   ts=double(ima(1,1:14));  
  end
  ts=ts';
- [time,b]=print_timestamp_s(ts);
+ [time,b,ImgCounter]=print_timestamp_s(ts);
  if(nargout<1)
   disp(b)
  else
-  txt=b;   
+  txt=b;
  end 
 end
 
 
-function [time,b]=print_timestamp_s(ts)
+function [time,b,ImgCounter]=print_timestamp_s(ts)
 % time is a datetime object.
 % b is a text of the same object.
 % Each pixel contains two digits in a byte (4 bits per digit).

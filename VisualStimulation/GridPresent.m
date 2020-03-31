@@ -18,7 +18,7 @@ function timestamps = GridPresent(app,ParameterVector)
     %             the luminance is needed as a non-corrected value for the
     %             CreateGratings function.
     if CalibrationFlag
-        Glumi = Lumi2Escher(Glumi,app.white,app.ScreenFunc);
+        [Glumi,~] = Lumi2Escher(Glumi,app.white,app.ScreenFunc);
     end
     Glumi = Glumi*app.white;
     
@@ -276,7 +276,7 @@ function GratingStruct = CreateGratings(app, Glumi, inc, f, gridType, MaskFlag, 
         %                 You cannot convert the Glumi value before this point
         %                 because you need the uncalibrated value for the
         %                 generation of the stimulus.
-        Glumi = Lumi2Escher(Glumi,app.white,app.ScreenFunc);
+        [Glumi,~] = Lumi2Escher(Glumi,app.white,app.ScreenFunc);
     end
     Glumi = app.white * Glumi;
     %             Convert grating to values from 0 to app.white (usually 255)
@@ -284,7 +284,7 @@ function GratingStruct = CreateGratings(app, Glumi, inc, f, gridType, MaskFlag, 
 
 %             Here it could be possible not to execute this block and let the graphic card repeat the grating.
 %             Instead, we create a full 2-D grating.
-        %                 Horizontally stacks the row vector "grating" a number of
+        %                 Vertically stacks the row vector "grating" a number of
         %                 times equal to its length. "grating" becomes a square
         %                 matrix.
     grating = repmat(grating, length(grating), 1);

@@ -1,4 +1,4 @@
-function escherValue = Lumi2Escher(lumiValue,whiteValue,formulaTxt)
+function [escherValue,TrueLumiValue] = Lumi2Escher(lumiValue,whiteValue,formulaTxt)
     %         First of all, we need the gamma correction function of the screen
     screenFunc = str2func(formulaTxt);
     %         Let's generate a vector of all possible values of escher,
@@ -17,4 +17,6 @@ function escherValue = Lumi2Escher(lumiValue,whiteValue,formulaTxt)
     %             Now we use that index to find the value on allEscherX: that
     %             is the value that we want as Escher input!
     escherValue = allEscherX(Idx);
+%     Also the true luminance value is returned.
+    TrueLumiValue = allLumiY(Idx);
 end

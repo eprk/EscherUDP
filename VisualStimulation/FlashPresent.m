@@ -9,8 +9,8 @@ function timestamps = FlashPresent(app,ParameterVector)
     %             If the calibration is selected, this converts the values of
     %             luminance (cd/m2) into "Escher values" (between 0 and 1).
     if CalibrationFlag
-        Blumi = Lumi2Escher(Blumi,app.white,app.ScreenFunc);
-        Slumi = Lumi2Escher(Slumi,app.white,app.ScreenFunc);
+        [Blumi,~] = Lumi2Escher(Blumi,app.white,app.ScreenFunc);
+        [Slumi,~] = Lumi2Escher(Slumi,app.white,app.ScreenFunc);
     end
 
     Blumi = app.white*Blumi;             % Luminance expressed as fractions of 'white'

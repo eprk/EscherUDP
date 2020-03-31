@@ -21,9 +21,9 @@ function timestamps = CheckPresent(app,ParameterVector)
     end
 
     if CalibrationFlag
-        Blumi = Lumi2Escher(Blumi,app.white,app.ScreenFunc);
-        Slumi = Lumi2Escher(Slumi,app.white,app.ScreenFunc);
-        Glumi = Lumi2Escher(Glumi,app.white,app.ScreenFunc);
+        [Blumi,~] = Lumi2Escher(Blumi,app.white,app.ScreenFunc);
+        [Slumi,~] = Lumi2Escher(Slumi,app.white,app.ScreenFunc);
+        [Glumi,~] = Lumi2Escher(Glumi,app.white,app.ScreenFunc);
     end
     
     % Next lines: insert the LUT correction

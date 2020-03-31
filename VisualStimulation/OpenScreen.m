@@ -57,12 +57,17 @@ function OpenScreen(app,background)
 %                 
 %                 % Contrast 'inc'rement range for given white and gray values:
 %                	inc = app.white-app.gray;
-
-
-        % Open a double buffered fullscreen window and set default background
-        % color to gray:
-        [app.w, app.screenRect] = Screen('OpenWindow',screenNumber, background*app.white);
-
+        if app.ApplydistortionCheckBox.Value
+    % If it is selected, use a distortion to 
+            PsychImaging('PrepareConfiguration');
+            PsychImaging('AddTask', 'AllViews', 'GeometryCorrection', 'C:\Users\Enrico\AppData\Roaming\Psychtoolbox\GeometryCalibration\SphereCalibdata_0_1920_1080.mat');
+            [app.w, app.screenRect] = PsychImaging('OpenWindow',screenNumber, background*app.white);
+        else
+            % Open a double buffered fullscreen window and set default background
+            % color to gray:
+            [app.w, app.screenRect] = Screen('OpenWindow',screenNumber, background*app.white);
+        end
+        
         % if drawmask
         % Enable alpha blending for proper combination of the gaussian aperture
         % with the drifting sine grating:

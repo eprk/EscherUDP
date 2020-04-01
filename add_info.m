@@ -27,5 +27,5 @@ OutPcoStruct.Info.PxlSize = [0.3 0.3];
 OutPcoStruct.Info.SamplingF = 30;
 OutPcoStruct.Info.StimF = (OutPcoStruct.Info.FramesPerTrial / OutPcoStruct.Info.SamplingF)^-1;
 
-save([fpath 'file009_mod.mat'],'OutPcoStruct');
+save([fpath fname(1:end-4) '_mod.mat'],'OutPcoStruct');
 

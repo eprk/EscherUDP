@@ -10,16 +10,16 @@ function filtdFoF = adaptiveDF3(varargin)
 % +===================+
 % | Description       |
 % +===================+
-% The function adaptiveDF4 applies the calculation of a filtered delta(F)/F for
-% 4-dimension calcium imaging time series described in the paper "In vivo two-photon imaging of
+% The function adaptiveDF3 applies the calculation of a filtered delta(F)/F for
+% 3-dimension calcium imaging time series as described in the paper "In vivo two-photon imaging of
 % sensory-evoked dendritic calcium signals in cortical neurons", by authors
 % H. Jia, N. L. Rochefort, X. Chen and A. Konnerth; it was published on
 % Nature Protocols in 2011.
 % In particular the formulas for the calculations are found in Box 1.
 %
-%       dFoF = adaptiveDF4(rawImgSeries,sp)
+%       dFoF = adaptiveDF3(rawImgSeries,sp)
 % adaptiveDF4 performs a delta(F)/F on the matrix rawImgSeries. This
-% argument has to be a 4-D matrix where the last dimension HAS to be time.
+% argument has to be a 3-D matrix where the last dimension HAS to be time.
 % sp is the sampling period expressed in seconds.
 % The function returns delta(F)/F as a matrix, that has the same dimensions
 % of the argument rawImgSeries.

@@ -1,18 +1,24 @@
 function timestamps = GridPresent(app,ParameterVector)
-    [Glumi,inc,sF,gridType,Angle,dS,MaskFlag,GaussSize,Bt,PreG,GridT,PostG,...
-        n,OneScreenFlag,CalibrationFlag,oculusFlag,ard_flag,optDtrTime] = ParameterVector{:};
+    [Glumi,inc,sF,gridType,Angle,dS,MaskFlag,GaussSize,Bt,PreG,GridT,...
+        PostG,n,PcoWhileStimFlag,OneScreenFlag,CalibrationFlag,...
+        oculusFlag,ard_flag,optDtrTime] = ParameterVector{:};
     
     if OneScreenFlag
         OpenScreen(app, Glumi)
     end
-
+    
+% In case PCO camera is used to record while stimulating, the PreG baseline
+% is set with the same duration as the GridT.
+% PostG time is just the same.
+    
     f = app.OnePxAngle*sF;
     
     %             The stimulus has to be prepared BEFORE the conversion to the
     %             calibrated look up table
     %             ENRICO 2018/05/02 Let's prepare the gratings and masks in
     %             advance
-    GratingStruct = CreateGratings(app, Glumi, inc, f, gridType, MaskFlag, GaussSize,CalibrationFlag,oculusFlag,ard_flag);
+    GratingStruct = CreateGratings(app, Glumi, inc, f, gridType,...
+        MaskFlag, GaussSize,CalibrationFlag,oculusFlag,ard_flag);
 
     %             This calibration shouldn't be performed before this point, because
     %             the luminance is needed as a non-corrected value for the
@@ -25,6 +31,16 @@ function timestamps = GridPresent(app,ParameterVector)
     if ard_flag % prepare the additional rectangle for optical synch signal
         BaselineColor = cast([[Glumi;Glumi;Glumi], [0;0;0]], app.ScreenBitDepth);
         BaselineScreen = [app.screenRect; app.HermesRect]';
+        
+% In case that PCO recording is used, the baseline also needs to trigger
+% Hermes. So BaselineColor will contain the baseline with a Hermes
+% rectangle that is ON (white), whereas BaselineColorOff will contain a
+% Hermes rectangle that is OFF (black).
+        if PcoWhileStimFlag
+            BaselineColorOff = BaselineColor;
+            BaselineColor = cast([[Glumi;Glumi;Glumi], ...
+                [app.white;app.white;app.white]], app.ScreenBitDepth);
+        end
     else
         BaselineColor = cast(Glumi, app.ScreenBitDepth);
         BaselineScreen = app.screenRect;
@@ -75,7 +91,7 @@ function timestamps = GridPresent(app,ParameterVector)
         Angle = [Angle, Angle];
         TexStruct.Grating = [TexStruct.Grating, TexStruct.Grating];
         
-%         Change the sR
+% Change the sR
         sR(3) = app.screenRect(3)/2;
         sR2 = sR;
         sR2([1 3]) = sR2([1 3]) + app.screenRect(3)/2;
@@ -85,36 +101,64 @@ function timestamps = GridPresent(app,ParameterVector)
         
         dstRect = [sR; sR2];
     end
+    
+% Save the dimension of the grating mask:
+    LargestDim = ceil(sqrt(sR(3)^2+sR(4)^2));
         
-%             This vector contains two timestamps for each period, one for
-%             the beginning of the grid and one for the end.
+% This vector contains two timestamps for each period, one for the
+% beginning of the grid and one for the end.
     timestamps = NaN(1,2*n);
-%             Load the WaitSecs function.
+% Load the WaitSecs function.
     WaitSecs(0);
     
-%             START OF THE ACTUAL STIMULATION
-%             ENRICO. 26/08/2019 Added an initial delay
-    Screen('FillRect', app.w, BaselineColor, BaselineScreen);     % paints the rectangle (entire screen)
+% START OF THE ACTUAL STIMULATION
+% ENRICO. 26/08/2019 Added an initial delay
+
+    if PcoWhileStimFlag
+% If PCO is used, we need to present BaselineColorOff here, otherwise an
+% optical DTR will be shown.
+        Screen('FillRect', app.w, BaselineColorOff, BaselineScreen);
+    else
+% If PCO is not used, we present BaselineColor here, which will have an OFF
+% optical DTR.
+        Screen('FillRect', app.w, BaselineColor, BaselineScreen);
+    end
     Screen('Flip', app.w);  % bring the buffered screen to forefront
     timZero = WaitSecs(0);
     timOffset = timZero + Bt;
     
+    TrialStartTime = timOffset+(0:n-1)*totPeriod;
+    BaseDtrEndTime = timOffset+(0:n-1)*totPeriod+optDtrTime; % end of the optical DTR of the baseline
+    timStart = timOffset+(0:n-1)*totPeriod+PreG; % start of the grid
+    dtrendtime = timOffset+(0:n-1)*totPeriod+PreG+optDtrTime; % end of optical DTR for Hermes
+    timEnd = timOffset+(0:n-1)*totPeriod+PreG+GridT; % end of the grid
+        
     i = 1;
     while i<=n
-%                     First off, fill the screen with uniform gray background
-%                     for the pre-stimulus baseline.
-        timStart = timOffset+(i-1)*totPeriod+PreG; % start of the grid
-        dtrendtime = timOffset+(i-1)*totPeriod+PreG+optDtrTime;
-        timEnd = timOffset+(i-1)*totPeriod+PreG+GridT; % end of the grid
-
-%                     This flip is at the beginning of the Grid
-%                     presentation, right after the pre-grid period.
-        vbl = Screen('Flip', app.w, timStart);  % bring the buffered screen to forefront
+% First off, fill the screen with uniform gray background for the 
+% pre-stimulus baseline.
+        Screen('FillRect', app.w, BaselineColor, BaselineScreen);
+        Screen('Flip', app.w, TrialStartTime(i));
+        
+% Only if PCO is used, an optical DTR is sent to Hermes, so that also the
+% baseline before stimulation can be recorded.
+% The next code turns OFF this optical DTR.
+        if PcoWhileStimFlag
+            Screen('FillRect', app.w, BaselineColorOff, BaselineScreen);
+            Screen('Flip', app.w, BaseDtrEndTime(i));
+        end
+        
+% This flip is at the beginning of the Grid presentation, right after the
+% pre-grid period. This could be substituted by just a WaitSecs function,
+% since here we only need to take the time, not to actually present a
+% screen. So I commented it and substituted it.
+%         vbl = Screen('Flip', app.w, timStart(i));  % bring the buffered screen to forefront
+        vbl =  WaitSecs('UntilTime', timStart(i));
         timestamps(2*i-1) = vbl;
         
         ii=0;
-%             Animationloop:
-        while vbl < timEnd
+% Animationloop:
+        while vbl < timEnd(i)
             
 %                 Shift the grating by "shiftperframe" pixels per frame:
 %                 the modulo operation makes sure that our "aperture" will snap
@@ -137,14 +181,14 @@ function timestamps = GridPresent(app,ParameterVector)
 %                 replicate pixels in one dimension if we exceed the real borders
 %                 of the stored texture. This allows us to save storage space here,
 %                 as our 2-D grating is essentially only defined in 1-D:
-            srcRectTemp = [xoffset, 0, ceil(sqrt(sR(3)^2+sR(4)^2))+xoffset, ceil(sqrt(sR(3)^2+sR(4)^2))];
+            srcRectTemp = [xoffset, 0, LargestDim+xoffset, LargestDim];
             if ~oculusFlag
                 srcRect = srcRectTemp;
             else
                 srcRect = [srcRectTemp; srcRectTemp];
             end
     
-            if vbl<dtrendtime
+            if vbl<dtrendtime(i)
 %                     This is the beginning of the stimulus, when the
 %                     optical DTR has to be white.
 
@@ -181,7 +225,16 @@ function timestamps = GridPresent(app,ParameterVector)
             ii=ii+1;
         end
         timestamps(2*i) = vbl; % The last vbl acquired.
-        Screen('FillRect', app.w, BaselineColor, BaselineScreen);
+        
+        if PcoWhileStimFlag
+% If PCO is used, we need to present BaselineColorOff here, otherwise an
+% optical DTR will be shown.
+            Screen('FillRect', app.w, BaselineColorOff, BaselineScreen);
+        else
+% If PCO is not used, we present BaselineColor here, which will have an OFF
+% optical DTR.
+            Screen('FillRect', app.w, BaselineColor, BaselineScreen);
+        end
         Screen('Flip', app.w);
         i=i+1;
     end

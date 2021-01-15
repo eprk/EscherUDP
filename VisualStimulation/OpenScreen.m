@@ -12,7 +12,7 @@ function OpenScreen(app,background)
     %             This should be 1 for general use. Synchronization is less
     %             reliable but the execution is more robust
     Screen('Preference', 'SkipSyncTests', 1);
-
+    
     try
         % This script calls Psychtoolbox commands available only in OpenGL-based
         % versions of the Psychtoolbox. (So far, the OS X Psychtoolbox is the
@@ -33,7 +33,15 @@ function OpenScreen(app,background)
             warning('Only one screen present!')
             return
         end
-        screenNumber = max(screens);
+        if app.OneScreenMode_ck.Value
+            if numel(screens) == 1
+                screenNumber = screens;
+            else
+                screenNumber = min(screens)+1;
+            end
+        else
+            screenNumber = max(screens);
+        end
 
         % Find the color values which correspond to white and black: Usually
         % black is always 0 and white 255, but this rule is not true if one of
@@ -58,9 +66,38 @@ function OpenScreen(app,background)
 %                 % Contrast 'inc'rement range for given white and gray values:
 %                	inc = app.white-app.gray;
         if app.ApplydistortionCheckBox.Value
-    % If it is selected, use a distortion to 
+            [xPx, yPx] = Screen('WindowSize', screenNumber);
+            app.screenRect = [0, 0, xPx, yPx];
+% The .mat file created contains two variables: scaI (structure) and warptype (character vector).
+            scal = FastDisplayUndistortionCSV(app, 'SphericalDistortionTmp.mat',screenNumber);
+            
+% Loaded calibration data from ASCII file distortion.csv.
+% Name of calibration result file: distortionout.mat
+% 
+% You can apply the calibration in your experiment script by replacing your 
+% win = Screen('OpenWindow', ...); command by the following sequence of 
+% commands:
+% 
+% PsychImaging('PrepareConfiguration');
+% PsychImaging('AddTask', 'LeftView', 'GeometryCorrection', 'distortionout.mat');
+% win = PsychImaging('OpenWindow', ...);
+% 
+% This would apply the calibration to the left-eye display of a stereo setup.
+% Additional options would be 'RightView' for the right-eye display of a stereo setup,
+% or 'AllViews' for both views of a stereo setup or the single display of a mono
+% setup.
+% 
+% The 'GeometryCorrection' call has a 'debug' flag as an additional optional parameter.
+% Set it to a non-zero value for diagnostic output at runtime.
+% E.g., PsychImaging('AddTask', 'LeftView', 'GeometryCorrection', 'distortionout.mat', 1);
+% would provide some debug output when actually using the calibration at runtime.  
+
+% If it is selected, use a distortion to take into account the spherical 
+% distortion from the point of view of the mouse eye.
             PsychImaging('PrepareConfiguration');
-            PsychImaging('AddTask', 'AllViews', 'GeometryCorrection', 'C:\Users\Enrico\AppData\Roaming\Psychtoolbox\GeometryCalibration\SphereCalibdata_0_1920_1080.mat');
+%             PsychImaging('AddTask', 'AllViews', 'GeometryCorrection', 'C:\Users\Enrico\AppData\Roaming\Psychtoolbox\GeometryCalibration\SphereCalibdata_0_1920_1080.mat');
+            PsychImaging('AddTask', 'AllViews', 'GeometryCorrection', 'SphericalDistortionTmp.mat');
+            
             [app.w, app.screenRect] = PsychImaging('OpenWindow',screenNumber, background*app.white);
         else
             % Open a double buffered fullscreen window and set default background
@@ -80,7 +117,7 @@ function OpenScreen(app,background)
         % We don't use Priority() in order to not accidentally overload older
         % machines that can't handle a redraw every 40 ms. If your machine is
         % fast enough, uncomment this to get more accurate timing.
-        % Priority(priorityLevel);
+%         Priority(priorityLevel);
 
 
         %                NEW Enrico 20190524
@@ -119,6 +156,11 @@ function OpenScreen(app,background)
         % Perform initial Flip to sync us to the VBL and for getting an initial
         % VBL-Timestamp as timing baseline for our redraw loop:
         vbl=Screen('Flip', app.w);
+        
+        if app.ApplydistortionCheckBox.Value
+% Delete  temporary file.
+            delete 'SphericalDistortionTmp.mat'
+        end
 
     catch
         %this "catch" section executes in case of an error in the "try" section

@@ -11,6 +11,8 @@ function timestamps = GridPresent(app,ParameterVector)
 % is set with the same duration as the GridT.
 % PostG time is just the same.
     
+% The parameter sF is the spatial frequency in cycles/degree.
+% The spatial frequency of the stimulus in cycles/pixel is calculated.
     f = app.OnePxAngle*sF;
     
     %             The stimulus has to be prepared BEFORE the conversion to the
@@ -84,9 +86,12 @@ function timestamps = GridPresent(app,ParameterVector)
 %     After creating the textures, if the VR headset is being used, we have
 %     to double the texture and the angle
     sR = app.screenRect;
+% Save the dimension of the grating mask:
+    LargestDim = ceil(sqrt(sR(3)^2+sR(4)^2));
+    
     if ~oculusFlag
 %         dstRect = CenterRect([0, 0, ceil(sqrt(sR(3)^2+sR(4)^2)), ceil(sqrt(sR(3)^2+sR(4)^2))], sR);
-        dstRect = sR;
+        dstRect = [0,0,LargestDim,LargestDim];
     else
         Angle = [Angle, Angle];
         TexStruct.Grating = [TexStruct.Grating, TexStruct.Grating];
@@ -99,11 +104,9 @@ function timestamps = GridPresent(app,ParameterVector)
 %         dstRectTemp = [0, 0, ceil(sqrt(sR(3)^2+sR(4)^2)), ceil(sqrt(sR(3)^2+sR(4)^2))];
 %         dstRect = [CenterRect(dstRectTemp, sR); CenterRect(dstRectTemp, sR2)];
         
-        dstRect = [sR; sR2];
+        dstRect = [[0,0,LargestDim,LargestDim]; [0,0,LargestDim,LargestDim]];
     end
     
-% Save the dimension of the grating mask:
-    LargestDim = ceil(sqrt(sR(3)^2+sR(4)^2));
         
 % This vector contains two timestamps for each period, one for the
 % beginning of the grid and one for the end.
@@ -195,18 +198,28 @@ function timestamps = GridPresent(app,ParameterVector)
 %                     Draw grating texture, rotated by "angle".
 %                     Then it draws the gaussian mask.
 %                     Finally, it draws the optical DTR for Arduino.
+%                 Screen('DrawTextures', app.w,...
+%                     [TexStruct.Grating, TexStruct.GaussMask, TexStruct.DtrOnMask],...
+%                     [srcRect', sR', sR'],...
+%                     [dstRect', sR', sR'], [Angle, 0, 0],[],[],[],[],kPsychUseTextureMatrixForRotation);
                 Screen('DrawTextures', app.w,...
                     [TexStruct.Grating, TexStruct.GaussMask, TexStruct.DtrOnMask],...
                     [srcRect', sR', sR'],...
-                    [dstRect', sR', sR'], [Angle, 0, 0],[],[],[],[],kPsychUseTextureMatrixForRotation);
+                    [dstRect', sR', sR'], [Angle, 0, 0],[],[],[],[],0);
+                
             else
 %                     This is the grating when the optical DTR has to be
 %                     black.
                 
+%                 Screen('DrawTextures', app.w,...
+%                     [TexStruct.Grating, TexStruct.GaussMask, TexStruct.DtrOffMask],...
+%                     [srcRect', sR', sR'],...
+%                     [dstRect', sR', sR'], [Angle, 0, 0],[],[],[],[],kPsychUseTextureMatrixForRotation);
                 Screen('DrawTextures', app.w,...
                     [TexStruct.Grating, TexStruct.GaussMask, TexStruct.DtrOffMask],...
                     [srcRect', sR', sR'],...
-                    [dstRect', sR', sR'], [Angle, 0, 0],[],[],[],[],kPsychUseTextureMatrixForRotation);
+                    [dstRect', sR', sR'], [Angle, 0, 0],[],[],[],[],0);
+
             end
 
 %                 Flip 'waitframes' monitor refresh intervals after last redraw.
@@ -277,10 +290,7 @@ function GratingStruct = CreateGratings(app, Glumi, inc, f, gridType, MaskFlag, 
     % First we compute pixels per cycle, rounded up to full pixels, as we
     % need this to create a grating of proper size below:
     p = ceil(1/f);
-
-    % Also need frequency in radians:
-    fr = f*2*pi;
-
+    
     %             ENRICO 20190504 I removed this
     %             % This is the visible size of the grating. It is twice the half-width
     %             % of the texture plus one pixel to make sure it has an odd number of
@@ -306,21 +316,26 @@ function GratingStruct = CreateGratings(app, Glumi, inc, f, gridType, MaskFlag, 
     %             all the screen during the drifting.
     x = 0:ceil(sqrt(sR(3)^2+sR(4)^2))+p;
 
-    %             Compute actual cosine grating:
+% Compute actual cosine grating:
     if gridType == 1
-        grating = Glumi + inc*cos(fr*x);
+% cosine function of frequency f: y = cos(2*pi*f*x)
+% Luminance is spatially determined by a cosine function of period f and
+% amplitude inc, with an offset of Glumi:
+        grating = Glumi + inc*cos(6.2832*f*x);
     else
-        %                 Square-wave stimulus
+% Square-wave stimulus
         GridUp = Glumi + inc;
         GridDown = Glumi - inc;
         grating = zeros(size(x));
+        
         for ii = 1:length(x)
-            if cos(fr*x(ii))>0
+            if cos(6.2832*f*x(ii))>0
                 grating(ii) = GridUp;
             else
                 grating(ii) = GridDown;
             end
         end
+
     end
 
     if CalibrationFlag

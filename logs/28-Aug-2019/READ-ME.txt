@@ -1,0 +1,8 @@
+To see some differences, I used some checkerboards to check what are the best between three different types of timestamps.
+In run number 1, I used the timestamp of WaitSecs, called right before the stimulus execution. Then the stimuli were executed with screen flip.
+In run number 2, I used the first output of screen flip for timestamp, which is VBLTimestamp. The wait command was also WaitSecs, immediatly followed by screen flip.
+In run number 3, I used the third output of screen flip for timestamp, which is FlipTimestamp. The wait command was also WaitSecs, immediatly followed by screen flip.
+
+Two extra runs:
+In run number 4, I used VBLTimestamp (like in 2) but the WaitSecs command was not used. Instead, screen flip with 'until' was used.
+In run number 5, I used FlipTimestamp (like in 3) but the WaitSecs command was not used. Instead, screen flip with 'until' was used.

@@ -1,0 +1,2 @@
+name,width,height,formula,notes
+asus large B0,34,27,@(x)-0.01+11.25*x.^1.9,standard ; K=100; B=0

@@ -1,0 +1,2 @@
+name,width,height,formula,notes
+Asus ROG XG27VQ,59.5303,33.6312,@(x)0.4+34.4*x.^1.88,Racing mode; K=100; B=0; S=NA; Gamma=2.2

@@ -1,0 +1,2 @@
+name,width,height,formula,notes
+small large B0K100,34.4,19.4,@(x)0.09+19.2*x.^2.05,standard; K=100; B=0; S=45

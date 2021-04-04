@@ -8,11 +8,9 @@
 const int R = 11;
 const int G = 12;
 const int B = 13;
-const int cmosTTL = 2; //it needs to be 2 or 3 to be compatible with interrupts
-const int outTTL = 9;
+const int TTL1 = 5;
 const int pinIN = A0; // Phototransistor analog input
-const int solisTTL = 7;
-const int optogenTTL = 4;
+const int TTL2 = 7; // to control either Solis LED or Optogenetics laser
 
 // ---variables----------------------------------------------------------------------------------
   //basic variables
@@ -26,7 +24,7 @@ bool outEnabled = true; //send a TTL output at the beginning of each trial, or w
                         //appears on the screen (to be recorded or to trigger an external stimulator)
 bool solisEnabled = true; //true if the Solis has to be turned on by Arduino
 
-  //variables related to multiple frames triggering (PCO)
+  //variables for multiple frames triggering (PCO)
 unsigned long frameP = 30000; //µs, is the framerate when triggering every frame
 unsigned long puffP = 1000000; //µs
 unsigned long nFrames = 1; // number of cmos ttl per stimulus
@@ -34,7 +32,12 @@ unsigned long iFrame; // index of cmos ttl
 int nTrials = 1;
 volatile bool stopTrig = false;
 
-  //variables related to the phototransistor
+  //variables for optogeneitc stimulation
+unsigned long optoStart = 200; //ms
+unsigned long optoDur = 800; //ms
+
+ 
+  //variables for the phototransistor
 double whiteval=1, blackval=1, val, thr;
 unsigned long calibTime = 5000000; // calibration time in µs
 bool calibW_done, calibB_done;
@@ -142,7 +145,7 @@ void f_default(){
   
 }
 
-void check_optic() {
+void check_photo() {
   // calls f2 if a visual stimulus appears
   val = analogRead(pinIN) * 4.9;
   if(val < thr){ //Phototransistor
@@ -158,7 +161,7 @@ void check_serial() {
     synch = false;
 
     if(solisEnabled){
-      digitalWrite(solisTTL, HIGH); //turn the LED on
+      digitalWrite(TTL2, HIGH); //turn the LED on
       delay((unsigned long) (serial_delay)); // serial_delay must be expressed in ms
     }
     
@@ -173,7 +176,7 @@ void check_serial() {
 
     if(solisEnabled){
       delay(500);
-      digitalWrite(solisTTL, LOW);
+      digitalWrite(TTL2, LOW);
     }
     
     Serial.println("end of stim");
@@ -187,14 +190,13 @@ void trigger_nFrames() {
   bool nFramesAcquired = false;
   //while((iFrame<=nFrames-1) && !stopTrig){
   while(!nFramesAcquired && !stopTrig){  
-    digitalWrite(cmosTTL, HIGH); //start imaging setting cMOS TTL to HIGH
+    digitalWrite(TTL1, HIGH); //start imaging setting cMOS TTL to HIGH
     //if ((iFrame == 1) && outEnabled) digitalWrite(outTTL, HIGH); //send out TTL (to start a stimuls or to be recorded)
     unsigned long tnow = micros();
-//    while (micros() < tnow + TTL_time ){
-//      //just wait
-//    }
-    delayMicroseconds(TTL_time);
-    digitalWrite(cmosTTL, LOW); //stop cMOS TTL
+    while (micros() < tnow + TTL_time ){
+      //just wait
+    }
+    digitalWrite(TTL1, LOW); //stop cMOS TTL
     //if ((iFrame == 1) && outEnabled) digitalWrite(outTTL, LOW); //stop out TTL
 
     //if(! mod.equals("prev")) iFrame++; //if a preview is running go on until a stop command comes
@@ -209,6 +211,37 @@ void trigger_nFrames() {
       // do  nothing: wait until the next frame
     }
   }
+}
+
+void trigger_opto(){
+  digitalWrite(TTL1, HIGH); //report stimulus onset
+  //if ((iFrame == 1) && outEnabled) digitalWrite(outTTL, HIGH); //send out TTL (to start a stimuls or to be recorded)
+  unsigned long tnow = micros();
+  while (micros() < tnow + TTL_time ){
+    //just wait
+  }
+  digitalWrite(TTL1, LOW);
+
+  // wait for optogenetics
+  while (millis() < t0*1000 + optoStart ){
+    //just wait
+  }
+  // now turn the optogenetics laser ON
+  digitalWrite(TTL2, HIGH);
+  while (millis() < t0*1000 + optoStart + optoDur ){
+    //just wait
+  }
+  digitalWrite(TTL2, LOW);
+}
+
+void trigger_classic(){
+  digitalWrite(TTL1, HIGH); //report stimulus onset
+  //if ((iFrame == 1) && outEnabled) digitalWrite(outTTL, HIGH); //send out TTL (to start a stimuls or to be recorded)
+  unsigned long tnow = micros();
+  while (micros() < tnow + TTL_time ){
+    //just wait
+  }
+  digitalWrite(TTL1, LOW);
 }
 
 // Procedures for parsing strings coming from serial communication-------------------------------------
@@ -240,38 +273,45 @@ void assignParsedStr(String substr){
   Serial.println(sub2);
   
   // assign
-  if(sub1.equals("mod")) {
-    mod = sub2;
-    if (mod.equals("o")){ //optical
-      f1 = &check_optic;
-      f2 = &trigger_nFrames;
-      stopTrig = false;
-      if(solisEnabled) digitalWrite(solisTTL,HIGH); //turn the Solis ON if visual stimulation is
-                                                // coupled with widefield imaging.
-        
+  if(sub1.equals("trig")) {
+    String trig = sub2;
+    if (trig.equals("photo")){ //phototransistor
+      f1 = &check_photo;
       digitalWrite(R,LOW);
       digitalWrite(G,HIGH);
       digitalWrite(B,LOW);
     }
-    if (mod.equals("s")){ //serial
+    if (trig.equals("serial")){ //serial command from Matlab
       f1 = &check_serial;
-      f2 = &trigger_nFrames;
       synch = false;
       stopTrig = false;
       digitalWrite(R,LOW);
       digitalWrite(G,LOW);
       digitalWrite(B,HIGH);
     }
-    if (mod.equals("prev")){ //preview
-      f1 = &check_serial;
+  }
+
+  
+  if(sub1.equals("mod")) {
+    mod = sub2;
+    if (mod.equals("cmosAcq")){ //trigger nFrames for acquisition
+      f2 = &trigger_nFrames;
+      stopTrig = false;
+      if(solisEnabled) digitalWrite(TTL2,HIGH); //turn the Solis ON if visual stimulation is
+                                                // coupled with widefield imaging. 
+    }
+    if (mod.equals("cmosPrev")){ //cmos preview
       f2 = &trigger_nFrames;
       nFrames = ~((unsigned long) 0);
       nTrials = 1;
       synch = false;
       stopTrig = false;
-      digitalWrite(R,HIGH);
-      digitalWrite(G,LOW);
-      digitalWrite(B,HIGH);
+    }
+    if (mod.equals("opto")){ //optogenetics
+      f2 = &trigger_opto;        
+    }
+    if (mod.equals("classic")){ //classic mode: just send one TTL
+      f2 = &trigger_classic;        
     }
   }
 
@@ -288,7 +328,7 @@ void assignParsedStr(String substr){
       stopTrig = true;
       digitalWrite(R,LOW);
       if(solisEnabled){
-        digitalWrite(solisTTL,LOW); //turn off the Solis
+        digitalWrite(TTL2,LOW); //turn off the Solis
       }
     }
   }
@@ -331,42 +371,25 @@ void assignParsedStr(String substr){
   if(sub1.equals("trialPeriod")) trialPeriod = (unsigned long)sub2.toDouble(); //expressed in ms
   if(sub1.equals("nFrames")) nFrames = (unsigned long)sub2.toDouble();
   if(sub1.equals("nTrials")) nTrials = sub2.toInt();
-}
-
-
-// Interrupt Service Routines -------------------------------------------------------------------------
-void triggerOpto(){
-  delay(200);
-  digitalWrite(optogenTTL, HIGH);
-  delayMicroseconds(800);
-  digitalWrite(optogenTTL, LOW);
-}
-
-void optoStim(){
-  triggerOpto();
+  if(sub1.equals("optoStart")) optoStart = (unsigned long)sub2.toDouble();
+  if(sub1.equals("optoDur")) optoDur = (unsigned long)sub2.toDouble();
 }
 
 //-----------------------------------------------------------------------------------------------------
 void setup() {
   const int readBtn = 3; // pin that is read to check if button is pressed
-  pinMode(cmosTTL, OUTPUT);
-  pinMode(outTTL, OUTPUT);
-  pinMode(optogenTTL, OUTPUT);
+  pinMode(TTL1, OUTPUT);
+  digitalWrite(TTL1, LOW);
+  pinMode(TTL2, OUTPUT);
+  digitalWrite(TTL2, LOW);
   pinMode(R, OUTPUT);
   pinMode(G, OUTPUT);
   pinMode(B, OUTPUT);
-  pinMode(readBtn, INPUT_PULLUP);
-  pinMode(solisTTL, OUTPUT);
-  digitalWrite(solisTTL, LOW);
-  
-  digitalWrite(cmosTTL, LOW);
   digitalWrite(R, LOW);
   digitalWrite(G, LOW);
   digitalWrite(B, LOW);
+  pinMode(readBtn, INPUT_PULLUP);
 
-  //PROVA
-  attachInterrupt(digitalPinToInterrupt(cmosTTL), optoStim, RISING);
-  
   // estabilish a serial communication
   Serial.begin(57600);
   delay(1000);
@@ -398,13 +421,14 @@ void setup() {
     compute_threshold();
 
     // Assign f1 and f2. In this way, Hermes works as always
-    f1 = &check_optic;
-    f2 = &trigger_nFrames;
+    f1 = &check_photo;
+    f2 = &trigger_classic;
     
   }else{
     
     // do nothing and wait for instructions.
     f1 = &f_default;
+    f2 = &f_default;
     digitalWrite(R, HIGH);
   }
 }

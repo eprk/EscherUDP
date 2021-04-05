@@ -8,7 +8,7 @@
 const int R = 11;
 const int G = 12;
 const int B = 13;
-const int TTL1 = 5;
+const int TTL1 = 5; // to control the camera or just to record stimulus onset
 const int pinIN = A0; // Phototransistor analog input
 const int TTL2 = 7; // to control either Solis LED or Optogenetics laser
 
@@ -22,7 +22,7 @@ unsigned long TTL_time = 2000; //µs
 unsigned long led_time = 10000; //µs. If led_time=0, then the LED is not turned ON at all.
 bool outEnabled = true; //send a TTL output at the beginning of each trial, or when a stimuls
                         //appears on the screen (to be recorded or to trigger an external stimulator)
-bool solisEnabled = true; //true if the Solis has to be turned on by Arduino
+bool solisEnabled = false; //true if the Solis has to be turned on by Arduino
 
   //variables for multiple frames triggering (PCO)
 unsigned long frameP = 30000; //µs, is the framerate when triggering every frame
@@ -223,15 +223,19 @@ void trigger_opto(){
   digitalWrite(TTL1, LOW);
 
   // wait for optogenetics
-  while (millis() < t0*1000 + optoStart ){
+  Serial.println(millis());
+  while (micros() < t0 + 1000*optoStart ){
     //just wait
   }
   // now turn the optogenetics laser ON
   digitalWrite(TTL2, HIGH);
-  while (millis() < t0*1000 + optoStart + optoDur ){
+  Serial.println(millis());
+  while (micros() < t0 + 1000*optoStart + 1000*optoDur ){
     //just wait
   }
   digitalWrite(TTL2, LOW);
+  Serial.println(millis());
+  Serial.println();
 }
 
 void trigger_classic(){
@@ -265,6 +269,7 @@ void parseSerial(String str) {
 
 void assignParsedStr(String substr){
 
+  Serial.println(substr);
   // separe the name and the value
   int idxSep = substr.indexOf("=");
   String sub1 = substr.substring(0,idxSep);
@@ -275,13 +280,13 @@ void assignParsedStr(String substr){
   // assign
   if(sub1.equals("trig")) {
     String trig = sub2;
-    if (trig.equals("photo")){ //phototransistor
+    if (trig.equals("p")){ //phototransistor
       f1 = &check_photo;
       digitalWrite(R,LOW);
       digitalWrite(G,HIGH);
       digitalWrite(B,LOW);
     }
-    if (trig.equals("serial")){ //serial command from Matlab
+    if (trig.equals("s")){ //serial command from Matlab
       f1 = &check_serial;
       synch = false;
       stopTrig = false;
@@ -294,13 +299,13 @@ void assignParsedStr(String substr){
   
   if(sub1.equals("mod")) {
     mod = sub2;
-    if (mod.equals("cmosAcq")){ //trigger nFrames for acquisition
+    if (mod.equals("camAc")){ //trigger nFrames for acquisition
       f2 = &trigger_nFrames;
       stopTrig = false;
       if(solisEnabled) digitalWrite(TTL2,HIGH); //turn the Solis ON if visual stimulation is
                                                 // coupled with widefield imaging. 
     }
-    if (mod.equals("cmosPrev")){ //cmos preview
+    if (mod.equals("camPr")){ //cmos preview
       f2 = &trigger_nFrames;
       nFrames = ~((unsigned long) 0);
       nTrials = 1;

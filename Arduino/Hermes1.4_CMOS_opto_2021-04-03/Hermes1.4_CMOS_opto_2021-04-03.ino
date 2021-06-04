@@ -8,7 +8,7 @@
 const int R = 11;
 const int G = 12;
 const int B = 13;
-const int TTL1 = 5; // to control the camera or just to record stimulus onset
+const int TTL1 = 5; // to control the camera (if mod=camAc or mod=camPr) or to synchronize ePhys (if mod=classic or mod=opto)
 const int pinIN = A0; // Phototransistor analog input
 const int TTL2 = 7; // to control either Solis LED or Optogenetics laser
 
@@ -68,7 +68,7 @@ void calibrate_white(){
       whiteval = val;
     }
     // Red LED blinks at 4 Hz (blinking purple)
-    if ((micros() - startTime) % 250000 < 125000) { // Red LED turns on
+    if ((micros() - startTime) % 250000 < 125000) { // Red LED turns onset
       digitalWrite(R, HIGH);
     }
     else { // Red LED turns off
@@ -150,8 +150,15 @@ void check_photo() {
   val = analogRead(pinIN) * 4.9;
   if(val < thr){ //Phototransistor
     t0=micros();
+//    Serial.println(t0);
     f2();
-    while(millis()< (round(t0/1000)+idleTime)); //just wait, not to respond twice to the same stimulus
+//    t0_millis = (unsigned long)(round(double(t0)/1000));
+//    Serial.println(t0_millis+idleTime);
+//    Serial.println(millis());
+    unsigned long idleTime_micros = idleTime*1000;
+    while(micros()<(t0+idleTime_micros)){
+      //just wait, not to respond twice to the same stimulus
+    }
   }
 }
 
@@ -184,7 +191,7 @@ void check_serial() {
 }
 
 // The followings are the functions that can be assigned to f2. They send TTL signals.-----------------
-void trigger_nFrames() {
+void trigger_nFrames(){
   
   iFrame = 0;
   bool nFramesAcquired = false;
@@ -223,20 +230,21 @@ void trigger_opto(){
   digitalWrite(TTL1, LOW);
 
   // wait for optogenetics
-  Serial.println(millis());
+//  Serial.println(millis());
   while (micros() < t0 + 1000*optoStart ){
     //just wait
   }
   // now turn the optogenetics laser ON
   digitalWrite(TTL2, HIGH);
-  Serial.println(millis());
+//  Serial.println(millis());
   while (micros() < t0 + 1000*optoStart + 1000*optoDur ){
     //just wait
   }
   digitalWrite(TTL2, LOW);
-  Serial.println(millis());
-  Serial.println();
+//  Serial.println(millis());
+//  Serial.println();
 }
+
 
 void trigger_classic(){
   digitalWrite(TTL1, HIGH); //report stimulus onset
@@ -295,7 +303,6 @@ void assignParsedStr(String substr){
       digitalWrite(B,HIGH);
     }
   }
-
   
   if(sub1.equals("mod")) {
     mod = sub2;
@@ -350,6 +357,11 @@ void assignParsedStr(String substr){
     if(sub2.equals("nFrames")){
       String outString = "nFrames = ";
       String outString2 = String(nFrames);
+      Serial.println(outString+outString2);
+    }
+    if(sub2.equals("idleTime")){
+      String outString = "idleTime = ";
+      String outString2 = String(idleTime);
       Serial.println(outString+outString2);
     }
   }

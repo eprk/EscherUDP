@@ -117,7 +117,7 @@ function OpenScreen(app,background)
         % We don't use Priority() in order to not accidentally overload older
         % machines that can't handle a redraw every 40 ms. If your machine is
         % fast enough, uncomment this to get more accurate timing.
-%         Priority(priorityLevel);
+        Priority(priorityLevel);
 
 
         %                NEW Enrico 20190524

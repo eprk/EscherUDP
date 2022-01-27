@@ -262,7 +262,30 @@ function timestamps = GridPresent(app,ParameterVector)
     if OneScreenFlag
         CloseScreen
     end
-
+    
+    % try this
+            ard_flag = app.ard_ck.Value;
+            Blumi = app.StandbyL.Value;
+            if app.CalibratedButton.Value
+                [Blumi,app.StandbyL.Value] = Lumi2Escher(Blumi,app.white,app.ScreenFunc);
+            end
+            Blumi = app.white*Blumi;
+            if ard_flag
+                BaselineColor = cast([[Blumi;Blumi;Blumi], [0;0;0]], app.ScreenBitDepth);
+                cellRects = [app.screenRect; app.HermesRect]';
+                %     This is commented because in flashes, the optical DTR
+                %     duration is the same as the flash duration
+                %     optDtrTime = app.optDtrTimeTxt.Value/1000; % optical DTR duration in s
+            else
+                BaselineColor = cast(Blumi, app.ScreenBitDepth);
+               	cellRects = app.screenRect;
+            end
+            Screen('FillRect', app.w, BaselineColor, cellRects); % paints the rectangle (entire screen)
+            Screen('Flip', app.w);
+    
+    
+    
+    
 %             Log writing.
     timestamps = timestamps - timZero;
 end

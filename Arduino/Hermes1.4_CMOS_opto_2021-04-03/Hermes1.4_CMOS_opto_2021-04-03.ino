@@ -35,7 +35,8 @@ volatile bool stopTrig = false;
   //variables for optogeneitc stimulation
 unsigned long optoStart = 200; //ms
 unsigned long optoDur = 800; //ms
-
+unsigned long optoPer = 1000; //ms
+unsigned long nStim = 1; // number of optogen pulses
  
   //variables for the phototransistor
 double whiteval=1, blackval=1, val, thr;
@@ -228,21 +229,28 @@ void trigger_opto(){
     //just wait
   }
   digitalWrite(TTL1, LOW);
-
+  
   // wait for optogenetics
-//  Serial.println(millis());
-  while (micros() < t0 + 1000*optoStart ){
-    //just wait
+  //  Serial.println(millis());
+    while (micros() < t0 + 1000*optoStart){
+      //just wait
+    }
+    
+  unsigned long i;
+  for (i==1;i<=nStim;i++){
+    // now turn the optogenetics laser ON
+    digitalWrite(TTL2, HIGH);
+  //  Serial.println(millis());
+    while (micros() < t0 + 1000*optoStart + 1000*optoDur +1000*optoPer*(i-1)){
+      //just wait
+    }
+    digitalWrite(TTL2, LOW);
+  //  Serial.println(millis());
+  //  Serial.println();
+    while (micros() < t0 + 1000*optoStart + 1000*optoPer*(i)){
+      //just wait
+    }
   }
-  // now turn the optogenetics laser ON
-  digitalWrite(TTL2, HIGH);
-//  Serial.println(millis());
-  while (micros() < t0 + 1000*optoStart + 1000*optoDur ){
-    //just wait
-  }
-  digitalWrite(TTL2, LOW);
-//  Serial.println(millis());
-//  Serial.println();
 }
 
 
@@ -390,6 +398,8 @@ void assignParsedStr(String substr){
   if(sub1.equals("nTrials")) nTrials = sub2.toInt();
   if(sub1.equals("optoStart")) optoStart = (unsigned long)sub2.toDouble();
   if(sub1.equals("optoDur")) optoDur = (unsigned long)sub2.toDouble();
+  if(sub1.equals("optoPer")) optoPer = (unsigned long)sub2.toDouble();
+  if(sub1.equals("nStim")) nStim = (unsigned long)sub2.toDouble();
 }
 
 //-----------------------------------------------------------------------------------------------------

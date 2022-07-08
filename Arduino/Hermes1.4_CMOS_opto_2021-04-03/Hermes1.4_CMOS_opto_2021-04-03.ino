@@ -237,7 +237,7 @@ void trigger_opto(){
     }
     
   unsigned long i;
-  for (i==1;i<=nStim;i++){
+  for (i==1;i<=nStim;i++){                                                                                                                                                                                                                                                                                                                                                          
     // now turn the optogenetics laser ON
     digitalWrite(TTL2, HIGH);
   //  Serial.println(millis());

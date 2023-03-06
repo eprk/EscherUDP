@@ -1,15 +1,13 @@
 function timestamps = GridPresent(app,ParameterVector)
     [Glumi,inc,sF,gridType,Angle,dS,MaskFlag,GaussSize,Bt,PreG,GridT,...
-        PostG,n,PcoWhileStimFlag,OneScreenFlag,CalibrationFlag,...
+        PostG,n,OneScreenFlag,CalibrationFlag,...
         oculusFlag,ard_flag,optDtrTime] = ParameterVector{:};
     
     if OneScreenFlag
         OpenScreen(app, Glumi)
     end
     
-% In case PCO camera is used to record while stimulating, the PreG baseline
-% is set with the same duration as the GridT.
-% PostG time is just the same.
+
     
 % The parameter sF is the spatial frequency in cycles/degree.
 % The spatial frequency of the stimulus in cycles/pixel is calculated.
@@ -33,16 +31,6 @@ function timestamps = GridPresent(app,ParameterVector)
     if ard_flag % prepare the additional rectangle for optical synch signal
         BaselineColor = cast([[Glumi;Glumi;Glumi], [0;0;0]], app.ScreenBitDepth);
         BaselineScreen = [app.screenRect; app.HermesRect]';
-        
-% In case that PCO recording is used, the baseline also needs to trigger
-% Hermes. So BaselineColor will contain the baseline with a Hermes
-% rectangle that is ON (white), whereas BaselineColorOff will contain a
-% Hermes rectangle that is OFF (black).
-        if PcoWhileStimFlag
-            BaselineColorOff = BaselineColor;
-            BaselineColor = cast([[Glumi;Glumi;Glumi], ...
-                [app.white;app.white;app.white]], app.ScreenBitDepth);
-        end
     else
         BaselineColor = cast(Glumi, app.ScreenBitDepth);
         BaselineScreen = app.screenRect;
@@ -90,8 +78,9 @@ function timestamps = GridPresent(app,ParameterVector)
     LargestDim = ceil(sqrt(sR(3)^2+sR(4)^2));
     
     if ~oculusFlag
-%         dstRect = CenterRect([0, 0, ceil(sqrt(sR(3)^2+sR(4)^2)), ceil(sqrt(sR(3)^2+sR(4)^2))], sR);
-        dstRect = [0,0,LargestDim,LargestDim];
+        dstRect = CenterRect([0, 0, ceil(sqrt(sR(3)^2+sR(4)^2)), ceil(sqrt(sR(3)^2+sR(4)^2))], sR);
+%         dstRect = [0,0,LargestDim,LargestDim];
+%         dstRect = sR;
     else
         Angle = [Angle, Angle];
         TexStruct.Grating = [TexStruct.Grating, TexStruct.Grating];
@@ -116,16 +105,7 @@ function timestamps = GridPresent(app,ParameterVector)
     
 % START OF THE ACTUAL STIMULATION
 % ENRICO. 26/08/2019 Added an initial delay
-
-    if PcoWhileStimFlag
-% If PCO is used, we need to present BaselineColorOff here, otherwise an
-% optical DTR will be shown.
-        Screen('FillRect', app.w, BaselineColorOff, BaselineScreen);
-    else
-% If PCO is not used, we present BaselineColor here, which will have an OFF
-% optical DTR.
-        Screen('FillRect', app.w, BaselineColor, BaselineScreen);
-    end
+    Screen('FillRect', app.w, BaselineColor, BaselineScreen);
     Screen('Flip', app.w);  % bring the buffered screen to forefront
     timZero = WaitSecs(0);
     timOffset = timZero + Bt;
@@ -142,15 +122,7 @@ function timestamps = GridPresent(app,ParameterVector)
 % pre-stimulus baseline.
         Screen('FillRect', app.w, BaselineColor, BaselineScreen);
         Screen('Flip', app.w, TrialStartTime(i));
-        
-% Only if PCO is used, an optical DTR is sent to Hermes, so that also the
-% baseline before stimulation can be recorded.
-% The next code turns OFF this optical DTR.
-        if PcoWhileStimFlag
-            Screen('FillRect', app.w, BaselineColorOff, BaselineScreen);
-            Screen('Flip', app.w, BaseDtrEndTime(i));
-        end
-        
+               
 % This flip is at the beginning of the Grid presentation, right after the
 % pre-grid period. This could be substituted by just a WaitSecs function,
 % since here we only need to take the time, not to actually present a
@@ -161,8 +133,7 @@ function timestamps = GridPresent(app,ParameterVector)
         
         ii=0;
 % Animationloop:
-        while vbl < timEnd(i)
-            
+        while vbl < timEnd(i)            
 %                 Shift the grating by "shiftperframe" pixels per frame:
 %                 the modulo operation makes sure that our "aperture" will snap
 %                 back to the beginning of the grating, once the border is reached.
@@ -239,15 +210,8 @@ function timestamps = GridPresent(app,ParameterVector)
         end
         timestamps(2*i) = vbl; % The last vbl acquired.
         
-        if PcoWhileStimFlag
-% If PCO is used, we need to present BaselineColorOff here, otherwise an
-% optical DTR will be shown.
-            Screen('FillRect', app.w, BaselineColorOff, BaselineScreen);
-        else
-% If PCO is not used, we present BaselineColor here, which will have an OFF
-% optical DTR.
-            Screen('FillRect', app.w, BaselineColor, BaselineScreen);
-        end
+        Screen('FillRect', app.w, BaselineColor, BaselineScreen);
+        
         Screen('Flip', app.w);
         i=i+1;
     end
@@ -261,8 +225,7 @@ function timestamps = GridPresent(app,ParameterVector)
     
     if OneScreenFlag
         CloseScreen
-    end
-    
+    else
     % try this
             ard_flag = app.ard_ck.Value;
             Blumi = app.StandbyL.Value;
@@ -282,7 +245,7 @@ function timestamps = GridPresent(app,ParameterVector)
             end
             Screen('FillRect', app.w, BaselineColor, cellRects); % paints the rectangle (entire screen)
             Screen('Flip', app.w);
-    
+    end
     
     
     
@@ -408,8 +371,8 @@ function GratingStruct = CreateGratings(app, Glumi, inc, f, gridType, MaskFlag, 
         %                 The sigma (standard deviation) of the Gaussian function
         %                 is sqrt(2)*GaussSize. This means that at the distance
         %                 GaussSize, the function is 63% of the maximum (160/255).
-        gaussmask(:, :, 2) = 255 * (1 - exp(-((x/GaussSize).^2)-((y/GaussSize).^2)));
-
+%         gaussmask(:, :, 2) = 255 * (1 - exp(-((x/GaussSize).^2)-((y/GaussSize).^2)));
+        gaussmask(:, :, 2) = 255 * (1 - exp(-(1/2*(x/GaussSize).^2)-(1/2*(y/GaussSize).^2))); %gab: 4 was missing!
     else
         gaussmask(:, :, 2) = 0;
     end
@@ -450,6 +413,7 @@ end
 
 function TexStruct = CreateTextures(app, GratingStruct)
     TexStruct.Grating = Screen('MakeTexture', app.w, GratingStruct.Grating);   % about 2.5 ms
+%     TexStruct.Grating = Screen('MakeTexture', app.w, GratingStruct.Grating, 1, 0, 0, 1, 0);
     TexStruct.GaussMask = Screen('MakeTexture', app.w, GratingStruct.GaussMask);
     TexStruct.DtrOnMask = Screen('MakeTexture', app.w, GratingStruct.DtrOnMask);
     TexStruct.DtrOffMask = Screen('MakeTexture', app.w, GratingStruct.DtrOffMask);

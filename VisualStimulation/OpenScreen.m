@@ -65,7 +65,7 @@ function OpenScreen(app,background)
 %                 
 %                 % Contrast 'inc'rement range for given white and gray values:
 %                	inc = app.white-app.gray;
-        if app.ApplydistortionCheckBox.Value
+        if app.ApplysphericaldistortionCheckBox.Value
             [xPx, yPx] = Screen('WindowSize', screenNumber);
             app.screenRect = [0, 0, xPx, yPx];
 % The .mat file created contains two variables: scaI (structure) and warptype (character vector).
@@ -157,7 +157,7 @@ function OpenScreen(app,background)
         % VBL-Timestamp as timing baseline for our redraw loop:
         vbl=Screen('Flip', app.w);
         
-        if app.ApplydistortionCheckBox.Value
+        if app.ApplysphericaldistortionCheckBox.Value
 % Delete  temporary file.
             delete 'SphericalDistortionTmp.mat'
         end

@@ -31,7 +31,9 @@ function timestamps = GridPresent(app,ParameterVector)
     Glumi = Glumi*app.white;
     
     if ard_flag % prepare the additional rectangle for optical synch signal
-        BaselineColor = cast([[Glumi;Glumi;Glumi], [0;0;0]], app.ScreenBitDepth);
+        
+        BaselineColor = cast([[0;0;0], [0;0;0]], app.ScreenBitDepth);% gab 2023 05 02 hardcode just for today
+%         BaselineColor = cast([[Glumi;Glumi;Glumi], [0;0;0]], app.ScreenBitDepth);
         BaselineScreen = [app.screenRect; app.HermesRect]';
         
 % In case that PCO recording is used, the baseline also needs to trigger
@@ -40,7 +42,8 @@ function timestamps = GridPresent(app,ParameterVector)
 % Hermes rectangle that is OFF (black).
         if PcoWhileStimFlag
             BaselineColorOff = BaselineColor;
-            BaselineColor = cast([[Glumi;Glumi;Glumi], ...
+%             BaselineColor = cast([[Glumi;Glumi;Glumi], ...
+            BaselineColor = cast([[0;0;0], ...    % gab 2023 05 02 hardcode just for today
                 [app.white;app.white;app.white]], app.ScreenBitDepth);
         end
     else

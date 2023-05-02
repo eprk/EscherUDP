@@ -169,7 +169,7 @@ function timestamps = CheckPresent(app,ParameterVector)
         end
 
 % --- Second stimulus (from cellColor1 to cellColor2)
-% Remember: p is the half of the period!
+% Remember: p is half of the period!
         SecondTim = timZero+Bt+(2*i-1)*p;
         Screen('FillRect',app.w,cellColor2On,cellRects);
         timestamps(2*i) = Screen('Flip', app.w, SecondTim);

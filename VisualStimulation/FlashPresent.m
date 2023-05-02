@@ -1,5 +1,5 @@
 function timestamps = FlashPresent(app,ParameterVector)
-    [Blumi,Slumi,Bt,St,p,n,OneScreenFlag,CalibrationFlag,ard_flag] = ParameterVector{:};
+    [Blumi,Slumi,Bt,St,p,n,bsl_check,OneScreenFlag,CalibrationFlag,ard_flag] = ParameterVector{:};
 
 %             Starts the OpenGL session if in single screen mode
     if OneScreenFlag
@@ -19,6 +19,7 @@ function timestamps = FlashPresent(app,ParameterVector)
     %             New part. Enrico 2019/05/24
     if ard_flag
         BaselineColor = cast([[Blumi;Blumi;Blumi], [0;0;0]], app.ScreenBitDepth);
+        BaselineColor_on = cast([[Blumi;Blumi;Blumi], [app.white;app.white;app.white]], app.ScreenBitDepth);
         StimColor = cast([[Slumi;Slumi;Slumi], [app.white;app.white;app.white]], app.ScreenBitDepth);
         cellRects = [app.screenRect; app.HermesRect]';
         %                 This is commented because in flashes, the optical DTR
@@ -57,7 +58,15 @@ function timestamps = FlashPresent(app,ParameterVector)
 
         % next lines flashes the screen with or without the Hermes rectangle. 6-12 ms on the Acer
         %for flashes we suppose that stim duration is 20-100ms, which is compatible with Hermes detection and idle time
-        Screen('FillRect', app.w, StimColor, cellRects); % paint the rectangle (entire screen)
+        if bsl_check
+            if mod(i,2)==1
+                Screen('FillRect', app.w, BaselineColor_on, cellRects); % paint the rectangle (entire screen)
+            else
+                Screen('FillRect', app.w, StimColor, cellRects); % paint the rectangle (entire screen)
+            end
+        else
+            Screen('FillRect', app.w, StimColor, cellRects); % paint the rectangle (entire screen)
+        end
         timestamps(2*i-1) = Screen('Flip', app.w, timStart);
 
         % the flash is complete

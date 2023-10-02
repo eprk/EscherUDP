@@ -1,6 +1,6 @@
 function timestamps = GridPresent(app,ParameterVector)
     [Glumi,inc,sF,gridType,Angle,dS,MaskFlag,GaussSize,Bt,PreG,GridT,...
-        PostG,n,PcoWhileStimFlag,OneScreenFlag,CalibrationFlag,...
+        PostG,n,dark_bsl,PcoWhileStimFlag,OneScreenFlag,CalibrationFlag,...
         oculusFlag,ard_flag,optDtrTime] = ParameterVector{:};
     
     if OneScreenFlag
@@ -25,29 +25,43 @@ function timestamps = GridPresent(app,ParameterVector)
     %             This calibration shouldn't be performed before this point, because
     %             the luminance is needed as a non-corrected value for the
     %             CreateGratings function.
+    Standby_lumi = app.StandbyL.Value;
     if CalibrationFlag
         [Glumi,~] = Lumi2Escher(Glumi,app.white,app.ScreenFunc);
+        [Standby_lumi,~] = Lumi2Escher(Standby_lumi,app.white,app.ScreenFunc);
+        
     end
     Glumi = Glumi*app.white;
+    Standby_lumi = app.white*Standby_lumi;
     
-    if ard_flag % prepare the additional rectangle for optical synch signal
-        
-        BaselineColor = cast([[0;0;0], [0;0;0]], app.ScreenBitDepth);% gab 2023 05 02 hardcode just for today
-%         BaselineColor = cast([[Glumi;Glumi;Glumi], [0;0;0]], app.ScreenBitDepth);
-        BaselineScreen = [app.screenRect; app.HermesRect]';
-        
+    if ard_flag % prepare the additional rectangle for optical synch signal   
+        if dark_bsl
+            BaselineColor = cast([[Standby_lumi;Standby_lumi;Standby_lumi], [0;0;0]], app.ScreenBitDepth);
+        else
+            BaselineColor = cast([[Glumi;Glumi;Glumi], [0;0;0]], app.ScreenBitDepth);
+        end
+         BaselineScreen = [app.screenRect; app.HermesRect]';
+         
 % In case that PCO recording is used, the baseline also needs to trigger
 % Hermes. So BaselineColor will contain the baseline with a Hermes
 % rectangle that is ON (white), whereas BaselineColorOff will contain a
 % Hermes rectangle that is OFF (black).
         if PcoWhileStimFlag
             BaselineColorOff = BaselineColor;
-%             BaselineColor = cast([[Glumi;Glumi;Glumi], ...
-            BaselineColor = cast([[0;0;0], ...    % gab 2023 05 02 hardcode just for today
-                [app.white;app.white;app.white]], app.ScreenBitDepth);
+            if dark_bsl
+                BaselineColor = cast([[Standby_lumi;Standby_lumi;Standby_lumi], ...    
+                    [app.white;app.white;app.white]], app.ScreenBitDepth);
+            else
+                BaselineColor = cast([[Glumi;Glumi;Glumi], ...
+                    [app.white;app.white;app.white]], app.ScreenBitDepth);
+            end
         end
     else
-        BaselineColor = cast(Glumi, app.ScreenBitDepth);
+        if dark_bsl
+            BaselineColor = cast(Standby_lumi, app.ScreenBitDepth);
+        else
+            BaselineColor = cast(Glumi, app.ScreenBitDepth);
+        end
         BaselineScreen = app.screenRect;
     end
     
@@ -264,28 +278,22 @@ function timestamps = GridPresent(app,ParameterVector)
     
     if OneScreenFlag
         CloseScreen
+    else
+        % Set back stadby luminance
+        if ard_flag
+            BaselineColor = cast([[Standby_lumi;Standby_lumi;Standby_lumi], [0;0;0]], app.ScreenBitDepth);
+            cellRects = [app.screenRect; app.HermesRect]';
+        else
+            BaselineColor = cast(Standby_lumi, app.ScreenBitDepth);
+            cellRects = app.screenRect;
+        end
+        Screen('FillRect', app.w, BaselineColor, cellRects); % paints the rectangle (entire screen)
+        Screen('Flip', app.w);
     end
     
-    % try this
-            ard_flag = app.ard_ck.Value;
-            Blumi = app.StandbyL.Value;
-            if app.CalibratedButton.Value
-                [Blumi,app.StandbyL.Value] = Lumi2Escher(Blumi,app.white,app.ScreenFunc);
-            end
-            Blumi = app.white*Blumi;
-            if ard_flag
-                BaselineColor = cast([[Blumi;Blumi;Blumi], [0;0;0]], app.ScreenBitDepth);
-                cellRects = [app.screenRect; app.HermesRect]';
-                %     This is commented because in flashes, the optical DTR
-                %     duration is the same as the flash duration
-                %     optDtrTime = app.optDtrTimeTxt.Value/1000; % optical DTR duration in s
-            else
-                BaselineColor = cast(Blumi, app.ScreenBitDepth);
-               	cellRects = app.screenRect;
-            end
-            Screen('FillRect', app.w, BaselineColor, cellRects); % paints the rectangle (entire screen)
-            Screen('Flip', app.w);
     
+    
+
     
     
     
@@ -352,16 +360,8 @@ function GratingStruct = CreateGratings(app, Glumi, inc, f, gridType, MaskFlag, 
 % Square-wave stimulus
         GridUp = Glumi + inc;
         GridDown = Glumi - inc;
-        grating = zeros(size(x));
-        
-        for ii = 1:length(x)
-            if cos(6.2832*f*x(ii))>0
-                grating(ii) = GridUp;
-            else
-                grating(ii) = GridDown;
-            end
-        end
-
+        grating = zeros(size(x))+GridDown;
+        grating(cos(6.2832*f*x)>0) = GridUp;
     end
 
     if CalibrationFlag

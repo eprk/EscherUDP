@@ -1,5 +1,5 @@
 %function [outMat, tstamps] = retrieveTrials(mat,info)
-function outMat = retrieveTrials(mat,info)
+function outMat = retrieveTrials(mat,nTr,fpt)
 % This function organizes a time series of images (x*y*time) into trials,
 % producing a matrix in the form (x*y*trial*time). It also rearranges the
 % timestamps vector in the form (trials*time).
@@ -10,8 +10,8 @@ function outMat = retrieveTrials(mat,info)
 %     error('The frame number does not match with the stimulus info')
 % end
 
-nTr = info.nTrials;
-fpt = info.FramesPerTrial;
+% nTr = info.nTrials;
+% fpt = info.FramesPerTrial;app.
 
 newSize = [size(mat,1), size(mat,2), fpt, nTr];
 outMat = permute(reshape(mat, newSize),[1,2,4,3]);

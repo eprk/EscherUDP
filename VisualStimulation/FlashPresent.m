@@ -1,5 +1,9 @@
 function timestamps = FlashPresent(app,ParameterVector)
-    [Blumi,Slumi,Bt,St,p,n,bsl_check,OneScreenFlag,CalibrationFlag,ard_flag] = ParameterVector{:};
+    % oculusFlag and optDtrTime are always the last 2 elements of part of
+    % ParamterVector. Since they're not needed in this function, they are
+    % discarded with ~.
+    [Blumi,Slumi,Bt,St,p,n,bsl_check,OneScreenFlag,CalibrationFlag,ard_flag,...
+        ~,~] = ParameterVector{:};
 
 %             Starts the OpenGL session if in single screen mode
     if OneScreenFlag

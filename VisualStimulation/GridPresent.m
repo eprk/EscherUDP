@@ -1,7 +1,7 @@
 function timestamps = GridPresent(app,ParameterVector)
     [Glumi,inc,sF,gridType,Angle,dS,MaskFlag,GaussSize,Bt,PreG,GridT,...
         PostG,n,dark_bsl,PcoWhileStimFlag,OneScreenFlag,CalibrationFlag,...
-        oculusFlag,ard_flag,optDtrTime] = ParameterVector{:};
+        ard_flag,oculusFlag,optDtrTime] = ParameterVector{:};
     
     if OneScreenFlag
         OpenScreen(app, Glumi)

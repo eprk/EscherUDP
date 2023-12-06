@@ -3,7 +3,7 @@ function timestamps = FlashPresent(app,ParameterVector)
     % ParamterVector. Since they're not needed in this function, they are
     % discarded with ~.
     [Blumi,Slumi,Bt,St,p,n,bsl_check,OneScreenFlag,CalibrationFlag,ard_flag,...
-        ~,~] = ParameterVector{:};
+        baseline_ttl,oculus,optDtrTime] = ParameterVector{:};
 
 %             Starts the OpenGL session if in single screen mode
     if OneScreenFlag
@@ -23,7 +23,7 @@ function timestamps = FlashPresent(app,ParameterVector)
     %             New part. Enrico 2019/05/24
     if ard_flag
         BaselineColor = cast([[Blumi;Blumi;Blumi], [0;0;0]], app.ScreenBitDepth);
-        BaselineColor_on = cast([[Blumi;Blumi;Blumi], [app.white;app.white;app.white]], app.ScreenBitDepth);
+        BaselineColor_ttl = cast([[Blumi;Blumi;Blumi], [app.white;app.white;app.white]], app.ScreenBitDepth);
         StimColor = cast([[Slumi;Slumi;Slumi], [app.white;app.white;app.white]], app.ScreenBitDepth);
         cellRects = [app.screenRect; app.HermesRect]';
         %                 This is commented because in flashes, the optical DTR
@@ -46,11 +46,15 @@ function timestamps = FlashPresent(app,ParameterVector)
     % December 2018. The initial delay is outside of the stimulus loop
     % Paint the screen for the initial delay
     % the following two lines takes a variable time in the range of 7-19 ms.
-    Screen('FillRect', app.w, BaselineColor, cellRects); % paints the rectangle (entire screen)
-    Screen('Flip', app.w); % bring the buffered screen to forefront
-%             Let's acquire the starting time.
-    timZero = WaitSecs(0);
+%     Screen('FillRect', app.w, BaselineColor, cellRects); % paints the rectangle (entire screen)
+%     Screen('Flip', app.w); % bring the buffered screen to forefront
+% %             Let's acquire the starting time.
+%     timZero = WaitSecs(0);
 
+    % This function presents the baseline
+    timZero = BaselinePresent(app.w,cellRects,BaselineColor,...
+        BaselineColor_ttl,ard_flag,baseline_ttl,optDtrTime); 
+    
     timOffset = timZero + Bt;
 
     i = 1;

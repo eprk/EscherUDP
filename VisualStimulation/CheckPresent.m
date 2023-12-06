@@ -4,7 +4,7 @@ function timestamps = CheckPresent(app,ParameterVector)
     % ParameterVector, a vector containing all the needed parameters
     
     [Blumi,Slumi,sF,Bt,p,n,OneScreenFlag,CalibrationFlag,...
-        ard_flag,oculusFlag,optDtrTime] = ParameterVector{:};
+        ard_flag,baseline_ttl,oculusFlag,optDtrTime] = ParameterVector{:};
 
     Glumi = (Slumi + Blumi)/2;
     
@@ -111,6 +111,8 @@ function timestamps = CheckPresent(app,ParameterVector)
     
     %             New part. Enrico 2019/05/24
     if ard_flag
+        BaselineColor_ttl = cast([[Glumi;Glumi;Glumi], [app.white; app.white; app.white]], ...
+            app.ScreenBitDepth);
         BaselineColor = cast([[Glumi;Glumi;Glumi], [0;0;0]], ...
             app.ScreenBitDepth);
         BaselineRect = [app.screenRect; app.HermesRect]';
@@ -138,14 +140,19 @@ function timestamps = CheckPresent(app,ParameterVector)
 % OK, let's start.
 % First thing first: edge out and wait for end of baseline.
 % Paints the rectangle (entire screen)
-    Screen('FillRect', app.w, BaselineColor, BaselineRect)
-    Screen('Flip', app.w);  % with equiluminant gray.
-    i=1;
-% Let's acquire the starting time.
-    timZero = WaitSecs(0);
+%     Screen('FillRect', app.w, BaselineColor, BaselineRect)
+%     Screen('Flip', app.w);  % with equiluminant gray.
+%     i=1;
+% % Let's acquire the starting time.
+%     timZero = WaitSecs(0);
+
+% This function presents the baseline
+    timZero = BaselinePresent(app.w,BaselineRect,BaselineColor,...
+        BaselineColor_ttl,ard_flag,baseline_ttl,optDtrTime); 
     
 % --- Prepare first stimulus (from baseline to cellColor1)
     Screen('FillRect', app.w, cellColor1On, cellRects)
+    i=1;
     while i <= n
 % It used to be:
 %        while ~KbCheck && i<=n

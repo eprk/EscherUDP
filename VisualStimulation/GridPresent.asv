@@ -312,7 +312,13 @@ function timestamps = GridPresent(app,ParameterVector)
         Screen('FillRect', app.w, BaselineColor, cellRects); % paints the rectangle (entire screen)
         Screen('Flip', app.w);
     end
+    
+    
+    
 
+    
+    
+    
 %             Log writing.
     timestamps = timestamps - timZero;
 end

@@ -34,7 +34,7 @@ function timestamps = GridPresent(app,ParameterVector)
     Glumi = Glumi*app.white;
     Standby_lumi = app.white*Standby_lumi;
     
-    if ard_flag % prepare the additional rectangle for optical synch signal   
+    if ard_flag && PcoWhileStimFlag % prepare the additional rectangle for optical synch signal   
         if dark_bsl
             BaselineColorOff = cast([[Standby_lumi;Standby_lumi;Standby_lumi], [0;0;0]], app.ScreenBitDepth);
             BaselineColor = cast([[Standby_lumi;Standby_lumi;Standby_lumi], [app.white; app.white; app.white]], ...
@@ -60,6 +60,15 @@ function timestamps = GridPresent(app,ParameterVector)
 %                     [app.white;app.white;app.white]], app.ScreenBitDepth);
 %             end
 %         end
+    elseif ard_flag
+        if dark_bsl
+            BaselineColor = cast([[Standby_lumi;Standby_lumi;Standby_lumi], [0;0;0]], app.ScreenBitDepth);
+            BaselineColor_ttl = cast([[Standby_lumi;Standby_lumi;Standby_lumi], [app.white;app.white;app.white]], app.ScreenBitDepth);
+        else
+            BaselineColor = cast([[Glumi;Glumi;Glumi], [0;0;0]], app.ScreenBitDepth);
+            BaselineColor_ttl = cast([[Glumi;Glumi;Glumi], [app.white;app.white;app.white]], app.ScreenBitDepth);
+        end
+        
     else
         if dark_bsl
             BaselineColor = cast(Standby_lumi, app.ScreenBitDepth);
@@ -151,11 +160,11 @@ function timestamps = GridPresent(app,ParameterVector)
 %     timZero = WaitSecs(0);
     
     % This function presents the baseline
-    if ard_flag && PcoWhileStimFlag
-        timZero = BaselinePresent(app.w,BaselineRect,BaselineColorOff,...
+    if ard_flag && 
+        timZero = BaselinePresent(app.w,BaselineScreen,BaselineColorOff,...
             BaselineColor,ard_flag,baseline_ttl,optDtrTime);
     else
-        timZero = BaselinePresent(app.w,BaselineRect,BaselineColor,...
+        timZero = BaselinePresent(app.w,BaselineScreen,BaselineColor,...
             BaselineColor,ard_flag,baseline_ttl,optDtrTime);
     end
     
@@ -312,13 +321,7 @@ function timestamps = GridPresent(app,ParameterVector)
         Screen('FillRect', app.w, BaselineColor, cellRects); % paints the rectangle (entire screen)
         Screen('Flip', app.w);
     end
-    
-    
-    
 
-    
-    
-    
 %             Log writing.
     timestamps = timestamps - timZero;
 end

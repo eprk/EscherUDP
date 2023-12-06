@@ -42,7 +42,7 @@ unsigned long nStim = 1; // number of optogen pulses
 double whiteval=1, blackval=1, val, thr;
 unsigned long calibTime = 5000000; // calibration time in µs
 bool calibW_done, calibB_done;
-double thrRatio = 0.75;// MUST be between 0 and 1. The ratio between the threshold-white distance divided by the black-white distance (thr-whiteval/(blackval-whiteval))
+double thrRatio = 0.8;// MUST be between 0 and 1. The ratio between the threshold-white distance divided by the black-white distance (thr-whiteval/(blackval-whiteval))
   // Conservative value (best one) = 0.5. old value was 0.75. High value: 0.999 (IT WORKS)
 
   //helper variables

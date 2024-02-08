@@ -68,7 +68,7 @@ function timestamps = FlashPresent(app,ParameterVector)
         %for flashes we suppose that stim duration is 20-100ms, which is compatible with Hermes detection and idle time
         if bsl_check
             if mod(i,2)==1
-                Screen('FillRect', app.w, BaselineColor_on, cellRects); % paint the rectangle (entire screen)
+                Screen('FillRect', app.w, BaselineColor_ttl, cellRects); % paint the rectangle (entire screen)
             else
                 Screen('FillRect', app.w, StimColor, cellRects); % paint the rectangle (entire screen)
             end

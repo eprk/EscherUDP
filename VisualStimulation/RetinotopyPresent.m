@@ -1,7 +1,7 @@
 function timestamps = RetinotopyPresent(app,ParameterVector)
     [Blumi,Slumi,Glumi,sF,Bt,p,Angle,RectangleSizeDeg,dS,PostG,n,...
-        TrialDeadTime,OneScreenFlag,CalibrationFlag,ard_flag,oculusFlag,...
-        optDtrTime] = ParameterVector{:};
+        TrialDeadTime,OneScreenFlag,CalibrationFlag,ard_flag,...
+        baseline_ttl,oculusFlag,optDtrTime] = ParameterVector{:};
     
     if OneScreenFlag
         OpenScreen(app, Glumi)
@@ -60,19 +60,19 @@ function timestamps = RetinotopyPresent(app,ParameterVector)
 %         dstRect = CenterRect([0, 0, ceil(sqrt(sR(3)^2+sR(4)^2)), ceil(sqrt(sR(3)^2+sR(4)^2))], sR);
         dstRect = sR;
     else
-%         NOW IT'S NOT WORKING, SO IT HAS TO BE MODIFIED BEFORE USING THIS.
-        Angle = [Angle, Angle];
-        TexStruct.GratingOne = [TexStruct.GratingOne, TexStruct.GratingOne];
-        
-%         Change the sR
-        sR(3) = app.screenRect(3)/2;
-        sR2 = sR;
-        sR2([1 3]) = sR2([1 3]) + app.screenRect(3)/2;
-        
-%         dstRectTemp = [0, 0, ceil(sqrt(sR(3)^2+sR(4)^2)), ceil(sqrt(sR(3)^2+sR(4)^2))];
-%         dstRect = [CenterRect(dstRectTemp, sR); CenterRect(dstRectTemp, sR2)];
-        
-        dstRect = [sR; sR2];
+% %         NOW IT'S NOT WORKING, SO IT HAS TO BE MODIFIED BEFORE USING THIS.
+%         Angle = [Angle, Angle];
+%         TexStruct.GratingOne = [TexStruct.GratingOne, TexStruct.GratingOne];
+%         
+% %         Change the sR
+%         sR(3) = app.screenRect(3)/2;
+%         sR2 = sR;
+%         sR2([1 3]) = sR2([1 3]) + app.screenRect(3)/2;
+%         
+% %         dstRectTemp = [0, 0, ceil(sqrt(sR(3)^2+sR(4)^2)), ceil(sqrt(sR(3)^2+sR(4)^2))];
+% %         dstRect = [CenterRect(dstRectTemp, sR); CenterRect(dstRectTemp, sR2)];
+%         
+%         dstRect = [sR; sR2];
     end
     
 %     Let's convert the drifting speed from degrees/second to
@@ -147,11 +147,20 @@ function timestamps = RetinotopyPresent(app,ParameterVector)
     
 % START OF THE ACTUAL STIMULATION
 % ENRICO. 26/08/2019 Added an initial delay
-    Screen('FillRect', app.w, BaselineColorDtrOff, BaselineScreen);     % paints the rectangle (entire screen)
-    Screen('Flip', app.w);  % bring the buffered screen to forefront
-    timZero = WaitSecs(0);
+% GAB. 14/02/2024 Added an optional opticalTTL at the beginning
+    if baseline_ttl
+        Screen('FillRect', app.w, BaselineColorDtrOn, BaselineScreen);     % paints the rectangle (entire screen)
+        Screen('Flip', app.w);  % bring the buffered screen to forefront
+        timZero = WaitSecs(0);
+        Screen('FillRect', app.w, BaselineColorDtrOff, BaselineScreen);     % paints the rectangle (entire screen)
+        Screen('Flip', app.w, timZero + optDtrTime);  % bring the buffered screen to forefront
+    else
+        Screen('FillRect', app.w, BaselineColorDtrOff, BaselineScreen);     % paints the rectangle (entire screen)
+        Screen('Flip', app.w);  % bring the buffered screen to forefront
+        timZero = WaitSecs(0);
+    end
     timOffset = timZero + Bt; %timOffset is the actual zero for the stimulation train.
-    
+
 % At the beginning , three time points specific for all trials are
 % calculated:
 % timStart: the starting time of the trial

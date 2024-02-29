@@ -125,7 +125,7 @@ function timestamps = CheckPresent(app,ParameterVector)
     else
         BaselineColor = cast(Glumi, app.ScreenBitDepth);
         BaselineRect = app.screenRect;
-        
+        BaselineColor_ttl = [];
         cellRects = cellRects';
     end
     

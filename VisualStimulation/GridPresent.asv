@@ -16,11 +16,10 @@ function timestamps = GridPresent(app,ParameterVector)
     % - post-grating "baseline" (PostG)
     % If they are scalars, convert them into column vectors with a number
     % of elements equal to 'n'.
-    if isscalar(inc);   inc   = repmat(inc,n,1);    end
-    if isscalar(Angle); Angle = repmat(Angle,n,1);  end
-    if isscalar(sF);    sF    = repmat(sF,n,1);     end
-    if isscalar(PostG); PostG = repmat(PostG,n,1);  end
-    
+    if isscalar(inc); inc=repmat(inc,n,1); end
+    if isscalar(inc); inc=repmat(inc,n,1); end
+    if isscalar(inc); inc=repmat(inc,n,1); end
+    if isscalar(inc); inc=repmat(inc,n,1); end
     
     if OneScreenFlag
         OpenScreen(app, Glumi)

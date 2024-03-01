@@ -127,7 +127,7 @@ function timestamps = GridPresent(app,ParameterVector)
     waitduration = waitframes * app.ifi;
 %             Recompute p, this time without the ceil() operation from above.
 %             Otherwise we will get wrong drift speed due to rounding errors!
-    p = 1/f;  % pixels/cycle
+    p = 1./f;  % pixels/cycle
 %             Translate requested speed of the grating (in cycles per second) into
 %             a shift value in "pixels per frame", for given waitduration: This is
 %             the amount of pixels to shift our srcRect "aperture" in horizontal
@@ -290,7 +290,7 @@ function timestamps = GridPresent(app,ParameterVector)
                 Screen('DrawTextures', app.w,...
                     [gratings_texture(i), mask_texture.GaussMask, mask_texture.DtrOnMask],...
                     [srcRect', sR', sR'],...
-                    [CenterRect(dstRect',sR'), sR', sR'], [180 - Angle(i), 0, 0],[],[],[],[],0);
+                    [CenterRect(dstRect,sR)', sR', sR'], [180 - Angle(i), 0, 0],[],[],[],[],0);
             else
 %                     This is the grating when the optical DTR has to be
 %                     black.
@@ -345,10 +345,10 @@ function timestamps = GridPresent(app,ParameterVector)
     end
     WaitSecs(Bt);
 %                 Is closing the textures really necessary?
-    Screen('Close',TexStruct.Grating)
-    Screen('Close',TexStruct.GaussMask)
-    Screen('Close',TexStruct.DtrOnMask)
-    Screen('Close',TexStruct.DtrOffMask)
+    Screen('Close',gratings_texture)
+    Screen('Close',mask_texture.GaussMask)
+    Screen('Close',mask_texture.DtrOnMask)
+    Screen('Close',mask_texture.DtrOffMask)
 %--------------------------------------------------------------------------
     
     if OneScreenFlag

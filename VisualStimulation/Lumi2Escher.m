@@ -1,4 +1,4 @@
-function [escherValue,TrueLumiValue] = Lumi2Escher(lumiValue,whiteValue,formulaTxt)
+function [escherValues,TrueLumiValues] = Lumi2Escher(lumiValues,whiteValue,formulaTxt)
 % First of all, we need the gamma correction function of the screen
     screenFunc = str2func(formulaTxt);
 % Let's generate a vector of all possible values of escher, considering 
@@ -12,11 +12,15 @@ function [escherValue,TrueLumiValue] = Lumi2Escher(lumiValue,whiteValue,formulaT
     allLumiY = screenFunc(allEscherX);
 % We look for the index of the value on the allLumiY vector that is close 
 % to "lumivalue" (our input).
-    tmpValue = abs(allLumiY-lumiValue);
-    [~,Idx] = min(tmpValue,[],1);
+
+    dim=size(lumiValues);
+    lumiValues_vector=reshape(lumiValues,1,[]);
+    tmpValues = abs(allLumiY-lumiValues_vector);
+    [~,Idx] = min(tmpValues,[],1);
 % Now we use that index to find the value on allEscherX: that is the value 
 % that we want as Escher input!
-    escherValue = allEscherX(Idx);
+    escherValues = allEscherX(Idx);
+    escherValues = reshape(escherValues,dim);
 % Also the true luminance value is returned.
-    TrueLumiValue = allLumiY(Idx);
+    TrueLumiValues = reshape(allLumiY(Idx),dim);
 end

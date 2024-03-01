@@ -11,7 +11,8 @@ function OpenScreen(app,background)
 
     %             This should be 1 for general use. Synchronization is less
     %             reliable but the execution is more robust
-    Screen('Preference', 'SkipSyncTests', 1);
+%     Screen('Preference', 'SkipSyncTests', 1);
+    Screen('Preference', 'SkipSyncTests', 0);
     
     try
         % This script calls Psychtoolbox commands available only in OpenGL-based

@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EscherLog version="2" date="04-Mar-2024 18:21:20" notes="">
+    <SystemSettings>
+        <Screen>
+            <Settings name="Name" value="Asus ROG XG27VQ"/>
+            <Settings name="TransferFunction" value="@(x)0.4+34.4*x.^1.88"/>
+            <Settings name="Notes" value="Racing mode; K=100; B=0; S=NA; Gamma=2.2"/>
+            <Settings name="CalibratedMode" value="true"/>
+            <Settings name="Distance_cm" value="15"/>
+            <Settings name="Width_cm" value="59.5303"/>
+            <Settings name="Height_cm" value="33.6312"/>
+            <Settings name="Width_pxl" value="1920"/>
+            <Settings name="Height_pxl" value="1080"/>
+            <Settings name="Width_deg" value="227.3889"/>
+            <Settings name="Height_deg" value="63.9531"/>
+            <Settings name="StandbyLumi_cd/m2" value="0"/>
+        </Screen>
+        <Hermes>
+            <Settings name="InUse" value="true"/>
+            <Settings name="CueWidth_pxl" value="130"/>
+            <Settings name="CueHeight_pxl" value="110"/>
+            <Settings name="CuePositionVertical" value="Top"/>
+            <Settings name="CuePositionHorizontal" value="Right"/>
+            <Settings name="CueDuration_ms" value="100"/>
+            <Settings name="HermesIdleTime_ms" value="200"/>
+            <Settings name="TTLDuration_ms" value="2"/>
+        </Hermes>
+    </SystemSettings>
+    <Sequence type="grid">
+        <Stimulus Name="InitialDelay" HermesSync="false">
+            <StimSettingsAttribute>
+                <Luminance>0</Luminance>
+                <Duration_s>2</Duration_s>
+            </StimSettingsAttribute>
+        </Stimulus>
+        <Stimulus Name="PreGrid" HermesSync="0">
+            <StimSettingsAttribute>
+                <Luminance>10.2341</Luminance>
+                <Duration_s>0.5</Duration_s>
+            </StimSettingsAttribute>
+        </Stimulus>
+        <Stimulus Name="Grid" HermesSync="1">
+            <StimSettingsAttribute>
+                <StimParams>
+                    <Name>Contrast</Name>
+                    <Value>96.0763</Value>
+                </StimParams>
+                <StimParams>
+                    <Name>MeanLuminance_cdm2</Name>
+                    <Value>10.2341</Value>
+                </StimParams>
+                <StimParams>
+                    <Name>SpatialFreq_cyc/deg</Name>
+                    <Value>0.04</Value>
+                </StimParams>
+                <StimParams>
+                    <Name>DriftingSpeed_cyc/s</Name>
+                    <Value>2</Value>
+                </StimParams>
+                <StimParams>
+                    <Name>GridShape</Name>
+                    <Value>Square</Value>
+                </StimParams>
+                <StimParams>
+                    <Name>GaussianMask</Name>
+                    <Value Active="false" Size_pxl="300"/>
+                </StimParams>
+                <StimParams>
+                    <Name>Orientation</Name>
+                    <Value>270</Value>
+                </StimParams>
+            </StimSettingsAttribute>
+        </Stimulus>
+        <Stimulus Name="PostGrid" HermesSync="1">
+            <StimSettingsAttribute>
+                <Luminance>10.2341</Luminance>
+                <Duration_s>0.5658</Duration_s>
+            </StimSettingsAttribute>
+        </Stimulus>
+        <Stimulus Name="PreGrid" HermesSync="0">
+            <StimSettingsAttribute>
+                <Luminance>10.2341</Luminance>
+                <Duration_s>0.5</Duration_s>
+            </StimSettingsAttribute>
+        </Stimulus>
+        <Stimulus Name="Grid" HermesSync="1">
+            <StimSettingsAttribute>
+                <StimParams>
+                    <Name>Contrast</Name>
+                    <Value>96.0763</Value>
+                </StimParams>
+                <StimParams>
+                    <Name>MeanLuminance_cdm2</Name>
+                    <Value>10.2341</Value>
+                </StimParams>
+                <StimParams>
+                    <Name>SpatialFreq_cyc/deg</Name>
+                    <Value>0.04</Value>
+                </StimParams>
+                <StimParams>
+                    <Name>DriftingSpeed_cyc/s</Name>
+                    <Value>2</Value>
+                </StimParams>
+                <StimParams>
+                    <Name>GridShape</Name>
+                    <Value>Square</Value>
+                </StimParams>
+                <StimParams>
+                    <Name>GaussianMask</Name>
+                    <Value Active="false" Size_pxl="300"/>
+                </StimParams>
+                <StimParams>
+                    <Name>Orientation</Name>
+                    <Value>90</Value>
+                </StimParams>
+            </StimSettingsAttribute>
+        </Stimulus>
+        <Stimulus Name="PostGrid" HermesSync="1">
+            <StimSettingsAttribute>
+                <Luminance>10.2341</Luminance>
+                <Duration_s>0.65247</Duration_s>
+            </StimSettingsAttribute>
+        </Stimulus>
+        <Stimulus Name="PreGrid" HermesSync="0">
+            <StimSettingsAttribute>
+                <Luminance>10.2341</Luminance>
+                <Duration_s>0.5</Duration_s>
+            </StimSettingsAttribute>
+        </Stimulus>
+        <Stimulus Name="Grid" HermesSync="1">
+            <StimSettingsAttribute>
+                <StimParams>
+                    <Name>Contrast</Name>
+                    <Value>96.0763</Value>
+                </StimParams>
+                <StimParams>
+                    <Name>MeanLuminance_cdm2</Name>
+                    <Value>10.2341</Value>
+                </StimParams>
+                <StimParams>
+                    <Name>SpatialFreq_cyc/deg</Name>
+                    <Value>0.04</Value>
+                </StimParams>
+                <StimParams>
+                    <Name>DriftingSpeed_cyc/s</Name>
+                    <Value>2</Value>
+                </StimParams>
+                <StimParams>
+                    <Name>GridShape</Name>
+                    <Value>Square</Value>
+                </StimParams>
+                <StimParams>
+                    <Name>GaussianMask</Name>
+                    <Value Active="false" Size_pxl="300"/>
+                </StimParams>
+                <StimParams>
+                    <Name>Orientation</Name>
+                    <Value>0</Value>
+                </StimParams>
+            </StimSettingsAttribute>
+        </Stimulus>
+        <Stimulus Name="PostGrid" HermesSync="1">
+            <StimSettingsAttribute>
+                <Luminance>10.2341</Luminance>
+                <Duration_s>0.65135</Duration_s>
+            </StimSettingsAttribute>
+        </Stimulus>
+        <Stimulus Name="PreGrid" HermesSync="0">
+            <StimSettingsAttribute>
+                <Luminance>10.2341</Luminance>
+                <Duration_s>0.5</Duration_s>
+            </StimSettingsAttribute>
+        </Stimulus>
+        <Stimulus Name="Grid" HermesSync="1">
+            <StimSettingsAttribute>
+                <StimParams>
+                    <Name>Contrast</Name>
+                    <Value>96.0763</Value>
+                </StimParams>
+                <StimParams>
+                    <Name>MeanLuminance_cdm2</Name>
+                    <Value>10.2341</Value>
+                </StimParams>
+                <StimParams>
+                    <Name>SpatialFreq_cyc/deg</Name>
+                    <Value>0.04</Value>
+                </StimParams>
+                <StimParams>
+                    <Name>DriftingSpeed_cyc/s</Name>
+                    <Value>2</Value>
+                </StimParams>
+                <StimParams>
+                    <Name>GridShape</Name>
+                    <Value>Square</Value>
+                </StimParams>
+                <StimParams>
+                    <Name>GaussianMask</Name>
+                    <Value Active="false" Size_pxl="300"/>
+                </StimParams>
+                <StimParams>
+                    <Name>Orientation</Name>
+                    <Value>180</Value>
+                </StimParams>
+            </StimSettingsAttribute>
+        </Stimulus>
+        <Stimulus Name="PostGrid" HermesSync="1">
+            <StimSettingsAttribute>
+                <Luminance>10.2341</Luminance>
+                <Duration_s>0.69226</Duration_s>
+            </StimSettingsAttribute>
+        </Stimulus>
+    </Sequence>
+</EscherLog>

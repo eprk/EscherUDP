@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EscherLog version="2" date="05/02/2024 12:09:36 PM" notes="">
+    <SystemConfiguration>
+        <Screen>
+          <Settings name="Name" value="Asus ROG XG27VQ"/>
+          <Settings name="TransferFunction" value="@(x)0.4+34.4*x.^1.88"/>
+          <Settings name="Notes" value="Racing mode; K=100; B=0; S=NA; Gamma=2.2"/>
+          <Settings name="CalibratedMode" value="1"/>
+          <Settings name="Distance_cm" value="15"/>
+          <Settings name="Width_cm" value="59.53"/>
+          <Settings name="Height_cm" value="33.63"/>
+          <Settings name="Width_pxl" value="1920"/>
+          <Settings name="Height_pxl" value="1080"/>
+          <Settings name="Width_deg" value="127"/>
+          <Settings name="Height_deg" value="97"/>
+          <Settings name="distance_cm" value="15"/>
+          <Settings name="SphericalCorrection" index="0"/>
+          <Settings name="OneScreenMode" index="0"/>
+          <Settings name="VRgoggles" index="0"/>
+        </Screen>
+        <Hermes>
+          <Settings name="InUse" value="1"/>
+          <Settings name="CueWidth_pxl" value="130"/>
+          <Settings name="CueHeight_pxl" value="110"/>
+          <Settings name="CuePositionVertical" value="top"/>
+          <Settings name="CuePositionHorizontal" value="right"/>
+          <Settings name="CueDuration_ms" value="100"/>
+          <Settings name="HermesIdleTime_ms" value="200"/>
+          <Settings name="TTLDuration_ms" value="2"/>
+        </Hermes>
+    </SystemConfiguration>
+    <Sequence type="RandomizedGrid" InitialBaseline_s="2" TTLAtBaselineStart="1">
+        <Stimulus name="InitialBaseline" relativeTime_s="0">
+            <Settingss>
+                <Settings name="Luminance_val" value="0.514"/>
+                <Settings name="Luminance_cd/m-2" value="10.2"/>
+            </Settingss>
+        </Stimulus>
+        <Stimulus name="Grid" relativeTime_s="2">
+            <Settingss>
+                <Settings name="SpatialFrequency_cyc/deg" value="0.04"/>
+                <Settings name="Orientation_deg" value="0"/>
+                <Settings name="Orientation_deg" value="0"/>
+            </Settingss>
+            <Contrast>
+                <Settings name="Contrast" value="100"/>
+                <Settings name="MeanValue" value="0.514"/>
+                <Settings name="WhiteValue" value="0.741"/>
+                <Settings name="BlackValue" value="0"/>
+                <Settings name="MeanLuminance_cd/m-2" value="10.2"/>
+                <Settings name="WhiteLuminance_cd/m-2" value="19.99"/>
+                <Settings name="BlackLuminance_cd/m-2" value="0.4"/>
+            </Contrast>
+        </Stimulus>
+    </Sequence>
+</EscherLog>

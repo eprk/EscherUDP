@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EscherLog version="2.0" date="5/2/2024 12:09:36 PM" notes="">
+  <Settings>
+    <Setting name="OneScreenMode" index="0" />
+  </Settings>
+  <Sequence type="RandomizedGrid" InitialBaseline="2" TTLAtBaselineStart="1">
+    <Stimulus name="InitialBaseline" relativeTime="0" />
+  </Sequence>
+</EscherLog>

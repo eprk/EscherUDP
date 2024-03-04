@@ -166,9 +166,12 @@ function timestamps = GridPresent(app,ParameterVector)
     end
     
         
-% This vector contains two timestamps for each period, one for the
-% beginning of the grid and one for the end.
-    timestamps = NaN(1,2*n);
+% This vector contains 3 timestamps for each period, one for the
+% "PreBaseline" onset, one for the grid onset and one for the "PostBaseline" onset.
+% Also, it contains the time of the initial baseline and the timestamp of
+% the baseline shown after the train of stimuli, if OneScreenMode is not
+% selected.
+    timestamps = NaN(1,1+3*n+double(~OneScreenFlag));
 % Load the WaitSecs function.
     WaitSecs(0);
     
@@ -200,7 +203,7 @@ function timestamps = GridPresent(app,ParameterVector)
     end
     
     timOffset = timZero + Bt;
-    
+    timestamps(1)=timZero;
 %     TrialStartTime = timOffset+(0:n-1)*totPeriod;
 %     BaseDtrEndTime = timOffset+(0:n-1)*totPeriod+optDtrTime; % end of the optical DTR of the baseline
 %     timStart = timOffset+(0:n-1)*totPeriod+PreG; % start of the grid
@@ -218,7 +221,8 @@ function timestamps = GridPresent(app,ParameterVector)
 % First off, fill the screen with uniform gray background for the 
 % pre-stimulus baseline.
         Screen('FillRect', app.w, BaselineColor, BaselineScreen);
-        Screen('Flip', app.w, TrialStartTime(i));
+        vbl_pre = Screen('Flip', app.w, TrialStartTime(i));
+        timestamps(1+3*(i-1)+1) = vbl_pre; 
         
 % Only if PCO is used, an optical DTR is sent to Hermes, so that also the
 % baseline before stimulation can be recorded.
@@ -234,7 +238,7 @@ function timestamps = GridPresent(app,ParameterVector)
 % screen. So I commented it and substituted it.
 %         vbl = Screen('Flip', app.w, timStart(i));  % bring the buffered screen to forefront
         vbl =  WaitSecs('UntilTime', timStart(i));
-        timestamps(2*i-1) = vbl;
+        timestamps(1+3*(i-1)+2) = vbl;
         
         ii=0;
 % Animationloop:
@@ -329,7 +333,7 @@ function timestamps = GridPresent(app,ParameterVector)
 %                 end
             ii=ii+1;
         end
-        timestamps(2*i) = vbl; % The last vbl acquired.
+        
         
         if PcoWhileStimFlag
 % If PCO is used, we need to present BaselineColorOff here, otherwise an
@@ -340,7 +344,8 @@ function timestamps = GridPresent(app,ParameterVector)
 % optical DTR.
             Screen('FillRect', app.w, BaselineColor, BaselineScreen);
         end
-        Screen('Flip', app.w);
+        vbl_post = Screen('Flip', app.w);
+        timestamps(1+3*(i-1)+3) = vbl_post; % The last vbl acquired.
         i=i+1;
     end
     WaitSecs(Bt);
@@ -363,7 +368,7 @@ function timestamps = GridPresent(app,ParameterVector)
             cellRects = app.screenRect;
         end
         Screen('FillRect', app.w, BaselineColor, cellRects); % paints the rectangle (entire screen)
-        Screen('Flip', app.w);
+        timestamps(end) = Screen('Flip', app.w);
     end
 
 %             Log writing.

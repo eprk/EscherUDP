@@ -1,4 +1,4 @@
-function timestamps = RetinotopyPresent(app,ParameterVector)
+function [timestamps,interrupted] = RetinotopyPresent(app,ParameterVector)
     [Blumi,Slumi,Glumi,sF,Bt,p,Angle,RectangleSizeDeg,dS,PostG,n,...
         TrialDeadTime,OneScreenFlag,CalibrationFlag,ard_flag,...
         baseline_ttl,oculusFlag,optDtrTime] = ParameterVector{:};
@@ -176,7 +176,10 @@ function timestamps = RetinotopyPresent(app,ParameterVector)
     
 % External loop on stimulus repetitions (trials)
     i = 1;
-    while i<=n
+    interrupted = false;
+    while i <= n && ~interrupted
+        interrupted = detectKeyboard();
+        
         Screen('FillRect', app.w, BaselineColorDtrOn, BaselineScreen);     % paints the rectangle (entire screen)
         Screen('Flip', app.w, TrialStartTime(i));  % bring the buffered screen to forefront
         
@@ -334,7 +337,7 @@ function GratingStruct = CreateGratings(app, Blumi, Slumi, Glumi, f,...
     mask_off = zeros(sR(4), sR(3), 2); %black everywhere
     %             Only if the optical DTR is checked, the alpha channel is made
     %             opaque only where the optical DTR should appear.
-    if ard_flag
+    if ard_flag && app.HermesSerialFlag
         mask_on(app.HermesRect(2)+1:app.HermesRect(4), app.HermesRect(1)+1:app.HermesRect(3), 2) = 255; %255 is opaque
         mask_off(app.HermesRect(2)+1:app.HermesRect(4), app.HermesRect(1)+1:app.HermesRect(3), 2) = 255; %255 is opaque
     end

@@ -9,6 +9,9 @@ stop_flag = false;
     [keyIsDown, ~, keyCode, ~] = KbCheck();
     if keyIsDown
         keys = [KbName(find(keyCode))];
+        if ~isa(keys,'cell')
+            keys = {keys};
+        end
         if strcmp(strcat(keys{:}),"opst")
             stop_flag = true;
         end

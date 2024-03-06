@@ -1,4 +1,4 @@
-function [timestamps,interrupted] = CheckPresent(app,ParameterVector)
+function timestamps = CheckPresent(app,ParameterVector)
     % The input variables are:
     % app, the handle for the app
     % ParameterVector, a vector containing all the needed parameters
@@ -151,11 +151,8 @@ function [timestamps,interrupted] = CheckPresent(app,ParameterVector)
     i=1;
     
 % detectKeyboard is used to stop the visual stimulation by pressing the
-% keys "stop" on the keyboard for a while. If detectKeyboard returns a true
-% value, the loop stops and the function returns prematurely.
-    interrupted = false;
-    while i <= n && ~interrupted
-        interrupted = detectKeyboard();
+% keys "stop" on the keyboard for a while.
+    while i <= n && ~detectKeyboard()
 % Remember: p is the half of the period!
         FirstTim = timZero+Bt+2*(i-1)*p;
         timestamps(1+2*i-1) = Screen('Flip', app.w, FirstTim);
@@ -201,10 +198,10 @@ function [timestamps,interrupted] = CheckPresent(app,ParameterVector)
     
     % Paints the rectangle (entire screen) with equiluminant gray.
     Screen('FillRect', app.w, BaselineColor, BaselineRect)
-    t_end=Screen('Flip', app.w, timZero+Bt+2*n*p);
-    timestamps(2*n+2)=t_end;
-    WaitSecs(Bt);
-    disp('STOPPED BY KEYBOARD')
+        t_end=Screen('Flip', app.w, timZero+Bt+2*n*p);
+        timestamps(2*n+2)=t_end;
+        WaitSecs(Bt);
+    
     if OneScreenFlag
         CloseScreen
     end

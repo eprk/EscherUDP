@@ -1,4 +1,4 @@
-function timestamps = GridPresent(app,ParameterVector)
+function [timestamps, interrupted] = GridPresent(app,ParameterVector)
 
     % Potentially, every stimulus is different in spatial freq, orientation and time
     % post stimulation, so: inc, sF, Angle and PostG can be either scalars 
@@ -166,12 +166,12 @@ function timestamps = GridPresent(app,ParameterVector)
     end
     
         
-% This vector contains 3 timestamps for each period, one for the
-% "PreBaseline" onset, one for the grid onset and one for the "PostBaseline" onset.
-% Also, it contains the time of the initial baseline and the timestamp of
-% the baseline shown after the train of stimuli, if OneScreenMode is not
-% selected.
-    timestamps = NaN(1,1+3*n+double(~OneScreenFlag));
+% "timestamps" contains:
+% - Onset of the "initial delay", which is time=0.
+% - 3 timestamps for each period, one for the
+% - The timestamp when the screen goes back tostanby luminance, after the
+%       train of stimuli.
+    timestamps = NaN(1,1+3*n+1);
 % Load the WaitSecs function.
     WaitSecs(0);
     
@@ -217,7 +217,12 @@ function timestamps = GridPresent(app,ParameterVector)
     timEnd = timOffset+[0,cumsum(totPeriod)']+PreG+GridT; % end of the grid
     
     i = 1;
-    while i<=n
+% detectKeyboard is used to stop the visual stimulation by pressing the
+% keys "stop" on the keyboard for a while. If detectKeyboard returns a true
+% value, the loop stops and the function returns prematurely.
+    interrupted = false;
+    while i <= n && ~interrupted
+        interrupted = detectKeyboard();
 % First off, fill the screen with uniform gray background for the 
 % pre-stimulus baseline.
         Screen('FillRect', app.w, BaselineColor, BaselineScreen);
@@ -242,7 +247,7 @@ function timestamps = GridPresent(app,ParameterVector)
         
         ii=0;
 % Animationloop:
-        while vbl < timEnd(i)
+        while vbl < timEnd(i) && ~interrupted
             
 %                 Shift the grating by "shiftperframe" pixels per frame:
 %                 the modulo operation makes sure that our "aperture" will snap
@@ -348,17 +353,15 @@ function timestamps = GridPresent(app,ParameterVector)
         timestamps(1+3*(i-1)+3) = vbl_post; % The last vbl acquired.
         i=i+1;
     end
-    WaitSecs(Bt);
-%                 Is closing the textures really necessary?
-    Screen('Close',gratings_texture)
-    Screen('Close',mask_texture.GaussMask)
-    Screen('Close',mask_texture.DtrOnMask)
-    Screen('Close',mask_texture.DtrOffMask)
-%--------------------------------------------------------------------------
     
-    if OneScreenFlag
-        CloseScreen
-    else
+    if interrupted
+        disp('STOPPED BY KEYBOARD')
+%---------------------------------------- stop as soon as possible:
+        Screen('Close',gratings_texture)
+        Screen('Close',mask_texture.GaussMask)
+        Screen('Close',mask_texture.DtrOnMask)
+        Screen('Close',mask_texture.DtrOffMask)
+        
         % Set back stadby luminance
         if ard_flag
             BaselineColor = cast([[Standby_lumi;Standby_lumi;Standby_lumi], [0;0;0]], app.ScreenBitDepth);
@@ -369,10 +372,38 @@ function timestamps = GridPresent(app,ParameterVector)
         end
         Screen('FillRect', app.w, BaselineColor, cellRects); % paints the rectangle (entire screen)
         timestamps(end) = Screen('Flip', app.w);
+        
+        if OneScreenFlag
+            CloseScreen
+        end
+        
+        timestamps = timestamps - timZero;
+    else
+%---------------------------------------- proceed normally:
+        WaitSecs(Bt);
+        Screen('Close',gratings_texture)
+        Screen('Close',mask_texture.GaussMask)
+        Screen('Close',mask_texture.DtrOnMask)
+        Screen('Close',mask_texture.DtrOffMask)
+        
+        % Set back stadby luminance
+        if ard_flag
+            BaselineColor = cast([[Standby_lumi;Standby_lumi;Standby_lumi], [0;0;0]], app.ScreenBitDepth);
+            cellRects = [app.screenRect; app.HermesRect]';
+        else
+            BaselineColor = cast(Standby_lumi, app.ScreenBitDepth);
+            cellRects = app.screenRect;
+        end
+        Screen('FillRect', app.w, BaselineColor, cellRects); % paints the rectangle (entire screen)
+        timestamps(end) = Screen('Flip', app.w);
+        
+        if OneScreenFlag
+            CloseScreen
+        end
+        
+        timestamps = timestamps - timZero;
     end
-
-%             Log writing.
-    timestamps = timestamps - timZero;
+    
 end
 
 

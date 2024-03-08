@@ -222,7 +222,6 @@ function [timestamps, interrupted] = GridPresent(app,ParameterVector)
 % value, the loop stops and the function returns prematurely.
     interrupted = false;
     while i <= n && ~interrupted
-        interrupted = detectKeyboard();
 % First off, fill the screen with uniform gray background for the 
 % pre-stimulus baseline.
         Screen('FillRect', app.w, BaselineColor, BaselineScreen);
@@ -330,6 +329,7 @@ function [timestamps, interrupted] = GridPresent(app,ParameterVector)
 %                 work optimally and report skipped frames due to hardware
 %                 overload:
             vbl = Screen('Flip', app.w, vbl + (waitframes - 0.5) * app.ifi);
+            interrupted = detectKeyboard();
 
 %                 ENRICO. Removed.
 %                 % Abort function if any key is pressed:

@@ -1,4 +1,4 @@
-function timestamps = FlashPresent(app,ParameterVector)
+function [timestamps, interrupted] = FlashPresent(app,ParameterVector)
     % oculusFlag and optDtrTime are always the last 2 elements of part of
     % ParamterVector. Since they're not needed in this function, they are
     % discarded with ~.
@@ -37,7 +37,7 @@ function timestamps = FlashPresent(app,ParameterVector)
 
 %             This vector contains two timestamps for each flash. One is
 %             for the flash turning on and one for the flash turning off.
-    timestamps = NaN(1,2*n);
+    timestamps = NaN(1,1+2*n+1);
     % Load the WaitSecs function. The first load might take some
     % time.
     WaitSecs(0);
@@ -56,9 +56,17 @@ function timestamps = FlashPresent(app,ParameterVector)
         BaselineColor_ttl,ard_flag,baseline_ttl,optDtrTime); 
     
     timOffset = timZero + Bt;
-
-    i = 1;
-    while i <= n
+    timestamps(1) = timZero;
+    
+i = 1;
+% detectKeyboard is used to stop the visual stimulation by pressing the
+% keys "stop" on the keyboard for a while. If detectKeyboard returns a true
+% value, the loop stops and the function returns prematurely.
+    interrupted = false;
+    while i <= n && ~interrupted
+        
+        interrupted = detectKeyboard();
+        
         % Wait for the end of the period. For the first period,
         % it just waits for the end of the baseline.
         timStart = timOffset + (i-1) * p;
@@ -75,15 +83,20 @@ function timestamps = FlashPresent(app,ParameterVector)
         else
             Screen('FillRect', app.w, StimColor, cellRects); % paint the rectangle (entire screen)
         end
-        timestamps(2*i-1) = Screen('Flip', app.w, timStart);
+        timestamps(1+2*i-1) = Screen('Flip', app.w, timStart);
 
         % the flash is complete
         Screen('FillRect', app.w, BaselineColor, cellRects); % paint the rectangle (entire screen)
-        timestamps(2*i) = Screen('Flip', app.w, timEnd); % wait for the end of stim
+        timestamps(1+2*i) = Screen('Flip', app.w, timEnd); % wait for the end of stim
         
         i = i+1;
     end
-    WaitSecs(Bt);
+    
+    if interrupted
+        disp('STOPPED BY KEYBOARD')
+%     else
+%     WaitSecs(Bt);        
+    end
     
     if OneScreenFlag
         CloseScreen

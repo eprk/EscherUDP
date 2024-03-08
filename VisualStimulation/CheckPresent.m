@@ -203,8 +203,13 @@ function [timestamps,interrupted] = CheckPresent(app,ParameterVector)
     Screen('FillRect', app.w, BaselineColor, BaselineRect)
     t_end=Screen('Flip', app.w, timZero+Bt+2*n*p);
     timestamps(2*n+2)=t_end;
-    WaitSecs(Bt);
-    disp('STOPPED BY KEYBOARD')
+    
+    if interrupted
+        disp('STOPPED BY KEYBOARD')
+    else
+        WaitSecs(Bt);
+    end
+    
     if OneScreenFlag
         CloseScreen
     end

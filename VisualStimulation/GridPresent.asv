@@ -248,7 +248,7 @@ function [timestamps, interrupted] = GridPresent(app,ParameterVector)
         ii=0;
 % Animationloop:
         while vbl < timEnd(i) && ~interrupted
-            interrupted = detectKeyboard();
+            
 %                 Shift the grating by "shiftperframe" pixels per frame:
 %                 the modulo operation makes sure that our "aperture" will snap
 %                 back to the beginning of the grating, once the border is reached.
@@ -356,10 +356,35 @@ function [timestamps, interrupted] = GridPresent(app,ParameterVector)
     
     if interrupted
         disp('STOPPED BY KEYBOARD')
-        % Don't wait, and proceed to restore the stanby luminance
-%     else
-%         WaitSecs(Bt);
+        % Don't wait, and proceed to restore the stanby luminance and exit
+        % the sti
+    else
+        WaitSecs(Bt);
     end
+    %---------------------------------------- stop as soon as possible:
+    Screen('Close',gratings_texture)
+    Screen('Close',mask_texture.GaussMask)
+    Screen('Close',mask_texture.DtrOnMask)
+    Screen('Close',mask_texture.DtrOffMask)
+    
+    % Set back stadby luminance
+    if ard_flag
+        BaselineColor = cast([[Standby_lumi;Standby_lumi;Standby_lumi], [0;0;0]], app.ScreenBitDepth);
+        cellRects = [app.screenRect; app.HermesRect]';
+    else
+        BaselineColor = cast(Standby_lumi, app.ScreenBitDepth);
+        cellRects = app.screenRect;
+    end
+    Screen('FillRect', app.w, BaselineColor, cellRects); % paints the rectangle (entire screen)
+    timestamps(end) = Screen('Flip', app.w);
+    
+    if OneScreenFlag
+        CloseScreen
+    end
+    
+    timestamps = timestamps - timZero;
+    
+    %---------------------------------------- proceed normally:
     
     Screen('Close',gratings_texture)
     Screen('Close',mask_texture.GaussMask)
@@ -382,6 +407,7 @@ function [timestamps, interrupted] = GridPresent(app,ParameterVector)
     end
     
     timestamps = timestamps - timZero;
+    
     
 end
 

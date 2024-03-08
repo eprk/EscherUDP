@@ -1,4 +1,4 @@
-function timestamps = DotsPresent(app,ParameterVector)
+function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
 
     % GAB 2021/12/02. shows dots moving in the same direction. Dot size and
     % speed can be fixed or randomized around a specific value. Dots can
@@ -180,7 +180,14 @@ function timestamps = DotsPresent(app,ParameterVector)
     timEnd = timOffset+(0:n-1)*totPeriod+Pre+StimT; % end of the grid
         
     i = 1;
-    while i<=n
+% detectKeyboard is used to stop the visual stimulation by pressing the
+% keys "stop" on the keyboard for a while. If detectKeyboard returns a true
+% value, the loop stops and the function returns prematurely.
+    interrupted = false;
+    while i <= n && ~interrupted
+        
+        interrupted = detectKeyboard();
+        
         % PRE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         if Pre>0
             % First off, fill the screen with uniform gray background for the
@@ -208,7 +215,9 @@ function timestamps = DotsPresent(app,ParameterVector)
         
         ii=0;
         % ANIMATION LOOP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        while vbl < timEnd(i)
+        while (vbl < timEnd(i)) && ~interrupted
+            
+            interrupted = detectKeyboard();
             
             % update dots position
             xy = xy + dxdy; % move dots
@@ -282,7 +291,12 @@ function timestamps = DotsPresent(app,ParameterVector)
     
         i=i+1;
     end
-    WaitSecs(Bt);
+    
+    if interrupted
+        disp('STOPPED BY KEYBOARD')
+%     else
+%         WaitSecs(Bt);
+    end
     
     if OneScreenFlag
         CloseScreen

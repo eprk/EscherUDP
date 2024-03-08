@@ -249,13 +249,7 @@ i = 1;
         Screen('Flip', app.w);
         i=i+1;
     end
-    
-    if interrupted
-        disp('STOPPED BY KEYBOARD')
-%     else
-%     WaitSecs(Bt);        
-    end
-
+    WaitSecs(Bt);
 %                 Is closing the textures really necessary?
     Screen('Close',TexStruct.GratingOne)
     Screen('Close',TexStruct.GratingTwo)

@@ -27,9 +27,12 @@ function [timestamps, interrupted] = SlowFlashPresent(app,ParameterVector)
     %           disappears.
 
     
-    [Blumi,Slumi,Bt,St,p,n,bsl_check,OneScreenFlag,CalibrationFlag,ard_flag,...
-        baseline_ttl,oculus,optDtrTime] = ParameterVector{:};
+    [Blumi,Slumi,Bt,St,p,n,bsl_check,...
+        PcoWhileStimFlag,OneScreenFlag,CalibrationFlag,...
+        ard_flag,baseline_ttl,oculusFlag,optDtrTime] = ParameterVector{:};
 
+    
+    
 %             Starts the OpenGL session if in single screen mode
     if OneScreenFlag
         OpenScreen(app, Blumi)
@@ -140,7 +143,7 @@ function [timestamps, interrupted] = SlowFlashPresent(app,ParameterVector)
         else
             Screen('FillRect', app.w, BaselineColor, cellRects);
         end
-        timestamps(1+2*i) = Screen('Flip', app.w, time_flashOFF); % wait for the end of the flash
+        timestamps(1+2*i) = Screen('Flip', app.w, time_flashOFF(i)); % wait for the end of the flash
         
          % Next lines make the optical TTL disappear.
         if ard_flag

@@ -6,7 +6,7 @@ function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
     % At the moment this stimulus does not work with oculusFlag.
 
     [back_lumi,dots_lumi,Angle,dS,Bt,Pre,StimT,Post,halflife,...
-        dotsSize,dens_dots,randSize,randSpeed,darkBack,basel_luminantBaseline,n,...
+        dotsSize,dens_dots,randSize,randSpeed,darkBack,equiluminantBaseline,n,...
         PcoWhileStimFlag,OneScreenFlag,CalibrationFlag,...
         ard_flag,baseline_ttl,oculusFlag,optDtrTime] = ParameterVector{:};
     
@@ -26,20 +26,20 @@ function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
     Priority(MaxPriority(app.w));
     
 %     Standby_lumi = app.StandbyL.Value;
-    if basel_luminantBaseline
-        basel_lumi = (dots_lumi+back_lumi)/2;
+    if equiluminantBaseline
+        equilumi = (dots_lumi+back_lumi)/2;
     else
-        basel_lumi = back_lumi;
+        equilumi = back_lumi;
     end
     if CalibrationFlag
         [back_lumi,~]    = Lumi2Escher(back_lumi,app.white,app.ScreenFunc);
         [dots_lumi,~]    = Lumi2Escher(dots_lumi,app.white,app.ScreenFunc);
-        [basel_lumi,~]     = Lumi2Escher(basel_lumi,app.white,app.ScreenFunc);
+        [equilumi,~]     = Lumi2Escher(equilumi,app.white,app.ScreenFunc);
 %         [Standby_lumi,~] = Lumi2Escher(Standby_lumi,app.white,app.ScreenFunc);
     end
     back_lumi = back_lumi*app.white;
     dots_lumi = dots_lumi*app.white;
-    basel_lumi = basel_lumi*app.white;
+    equilumi = equilumi*app.white;
 %     Standby_lumi = Standby_lumi*app.white;
     
     if ~darkBack
@@ -49,16 +49,16 @@ function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
         dots_lumi = tmp;
     end
     
-    BackgroundColor = cast(back_lumi, app.ScreenBitDepth);
-%     BaselineColor = cast(basel_lumi, app.ScreenBitDepth);
+%     BackgroundColor = cast(back_lumi, app.ScreenBitDepth);
+%     BaselineColor = cast(equilumi, app.ScreenBitDepth);
 %     BaselineScreen = app.screenRect;
     
     
     if ard_flag && PcoWhileStimFlag % prepare the additional rectangle for optical synch signal
         
-        BaselineColorOff = cast([[basel_lumi;basel_lumi;basel_lumi],[0;0;0]],...
+        BaselineColorOff = cast([[back_lumi;back_lumi;back_lumi],[0;0;0]],...
                                 app.ScreenBitDepth);
-        BaselineColor    = cast([[basel_lumi;basel_lumi;basel_lumi],[app.white; app.white; app.white]], ...
+        BaselineColor    = cast([[back_lumi;back_lumi;back_lumi],[app.white; app.white; app.white]], ...
                                 app.ScreenBitDepth);
         BaselineScreen = [app.screenRect; app.HermesRect]';
         
@@ -68,13 +68,13 @@ function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
         % Hermes rectangle that is OFF (black).
 
     elseif ard_flag
-        BaselineColor     = cast([[basel_lumi;basel_lumi;basel_lumi], [0;0;0]], ...
+        BaselineColor     = cast([[back_lumi;back_lumi;back_lumi], [0;0;0]], ...
                                 app.ScreenBitDepth);
-        BaselineColor_ttl = cast([[basel_lumi;basel_lumi;basel_lumi], [app.white;app.white;app.white]], ...
+        BaselineColor_ttl = cast([[back_lumi;back_lumi;back_lumi], [app.white;app.white;app.white]], ...
                                 app.ScreenBitDepth);
         BaselineScreen = [app.screenRect; app.HermesRect]';
     else
-        BaselineColor = cast(basel_lumi, app.ScreenBitDepth);
+        BaselineColor = cast(back_lumi, app.ScreenBitDepth);
         BaselineScreen = app.screenRect;
     end
 

@@ -28,7 +28,6 @@ function [timestamps, interrupted] = FlashPresent(app,ParameterVector)
         cellRects = [app.screenRect; app.HermesRect]';
         %                 This is commented because in flashes, the optical DTR
         %                 duration is the same as the flash duration
-        %                 optDtrTime = app.optDtrTimeTxt.Value/1000; % optical DTR duration in s
     else
         BaselineColor = cast(Blumi, app.ScreenBitDepth);
         StimColor = cast(Slumi, app.ScreenBitDepth);

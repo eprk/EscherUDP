@@ -3,7 +3,8 @@ function [timestamps,interrupted] = CheckPresent(app,ParameterVector)
     % app, the handle for the app
     % ParameterVector, a vector containing all the needed parameters
     
-    [Blumi,Slumi,sF,Bt,p,n,OneScreenFlag,CalibrationFlag,...
+    [Blumi,Slumi,sF,Bt,p,n,...
+        PcoWhileStimFlag,OneScreenFlag,CalibrationFlag,...
         ard_flag,baseline_ttl,oculusFlag,optDtrTime] = ParameterVector{:};
 
     Glumi = (Slumi + Blumi)/2;

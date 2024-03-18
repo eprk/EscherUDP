@@ -93,14 +93,9 @@ function [timestamps, interrupted] = FlashPresent(app,ParameterVector)
         i = i+1;
     end
     
-    % Prepare baseline (standby) after stimulation
-    Screen('FillRect', app.w, BaselineColor, cellRects)
-    
     if interrupted
         disp('STOPPED BY KEYBOARD')
-        timestamps(end) = Screen('Flip');
-    else
-        timestamps(end) = Screen('Flip', app.w, time_finalBaseline);
+        timestamps(end) = Screen('Flip', app.w,Screen('Flip', app.w,)
     end
     
     if OneScreenFlag

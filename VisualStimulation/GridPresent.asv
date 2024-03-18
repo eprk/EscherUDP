@@ -246,8 +246,8 @@ timestamps(1)=timZero;
 
 % Prepare event timepoints. Note that they all have n+1 alaments. This is
 % intended: TrialStartTime(n+1) is used to restore stanby luminance after
-% the end of the stimulation, and it makes sure the last "post-grid" baseline
-% lasts as it is suppose to do.
+% the end of the stimulation, and it makes sure we show the last
+% "post-grid" baseline for the time it's supposed to be shown. 
 TrialStartTime = timOffset+cumsum([0;totPeriod]); % start of the baseline
 BaseDtrEndTime = TrialStartTime + optDtrTime; % end of the optical DTR of the baseline
 timStart = timOffset+cumsum([0;totPeriod])+PreG; % start of the grid
@@ -414,8 +414,8 @@ if interrupted
     % possible
     timestamps(end) = Screen('Flip', app.w);
 else
-    % Wait for the end of the last "post-grid baseline"
-    timestamps(end) = Screen('Flip', app.w, TrialStartTime(n+1));
+    timestamps(end) = Screen('Flip', app.w);
+    
 end
 
 

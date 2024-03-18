@@ -6,7 +6,7 @@ function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
     % At the moment this stimulus does not work with oculusFlag.
 
     [back_lumi,dots_lumi,Angle,dS,Bt,Pre,StimT,Post,halflife,...
-        dotsSize,dens_dots,randSize,randSpeed,darkBack,basel_luminantBaseline,n,...
+        dotsSize,dens_dots,randSize,randSpeed,darkBack,equiluminantBaseline,n,...
         PcoWhileStimFlag,OneScreenFlag,CalibrationFlag,...
         ard_flag,baseline_ttl,oculusFlag,optDtrTime] = ParameterVector{:};
     
@@ -26,7 +26,7 @@ function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
     Priority(MaxPriority(app.w));
     
 %     Standby_lumi = app.StandbyL.Value;
-    if basel_luminantBaseline
+    if equiluminantBaseline
         basel_lumi = (dots_lumi+back_lumi)/2;
     else
         basel_lumi = back_lumi;
@@ -122,16 +122,22 @@ function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
     
     % Let's create a square screen whose edge is as long as the screen
     % diagonal (i.e. the biggest possible dimension)
-	dia = sqrt( (xmax-x0).^2 + (ymax-y0).^2); % diagonal in pixels
-    dia_deg = atand(dia/2/app.ScreenDistance.Value)*2; % diagonal in degrees of visual field
-    
+% 	dia = sqrt( (xmax-x0).^2 + (ymax-y0).^2); % diagonal in pixels
+%     dia_deg = atand(dia/2/app.ScreenDistance.Value)*2; % diagonal in degrees of visual field
+    w = app.ScreenWidth.Value; h = app.ScreenHeight.Value;
+    pxl_size = [w, h] ./ ...
+               [app.WidthPix.Value, app.HeightPix.Value];
+    dia_cm = sqrt( ( (xmax-x0) * pxl_size(1) ).^2 + ...
+                ( (ymax-y0) * pxl_size(2) ).^2 ); % diagonal in cm
+    d = app.ScreenDistance.Value;
+    solid_angle = screenSolidAngle(dia_cm,dia_cm,d);
     % compute the actual number of dots based on the selected density and
     % the surface of the new square screen. This number is different than
     % the number of dots on the User Interface, which is the average number
     % of dots that are visible on the screen
-    ndots = round(dens_dots * dia_deg.^2);
+    ndots = round(dens_dots * solid_angle);
     
-    
+    dia = sqrt( (xmax-x0).^2 + (ymax-y0).^2); % diagonal in pixels
     % dot positions
     x = dia*(rand(ndots,1)-0.5);
     y = dia*(rand(ndots,1)-0.5);
@@ -140,7 +146,7 @@ function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
     % dot steps (they only move horizontally now. Later we'll rotate)
     dxdy = ones(ndots,2).*ppf.*[1,0];
     if randSpeed
-        dxdy = dxdy .* gamrnd(10,0.1,ndots,1);
+        dxdy = dxdy .* gamrnd(10,0.1,ndots,1); % gamma distrib. with mean = 1
     end
     
     % rotation matrix
@@ -191,6 +197,7 @@ function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
         timZero = BaselinePresent(app.w,BaselineScreen,BaselineColor,...
             BaselineColor,ard_flag,baseline_ttl,optDtrTime);
     end
+    timOffset = timZero + Bt;
 %     Screen('FillRect', app.w, BaselineColor, BaselineScreen);
 %     if ard_flag
 %         Screen('FillRect', app.w, 0, app.HermesRect);
@@ -199,7 +206,10 @@ function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
 %     timZero = WaitSecs(0);
 %     timOffset = timZero + Bt;
     
-    TrialStartTime = timOffset+(0:n-1)*totPeriod;
+    TrialStartTime = timOffset+(0:n)*totPeriod; %Note that "TrialStartTime" has 
+        % n+1 elements. This is intended: TrialStartTime(n+1) is used to restore
+        % stanby luminance after the end of the stimulation, and it makes sure 
+        % the last "post-dots" baseline lasts as it is supposed to do.
     BaseDtrEndTime = timOffset+(0:n-1)*totPeriod+optDtrTime; % end of the optical DTR of the baseline
     timStart = timOffset+(0:n-1)*totPeriod+Pre; % start of the grid
     dtrendtime = timOffset+(0:n-1)*totPeriod+Pre+optDtrTime; % end of optical DTR for Hermes
@@ -318,15 +328,15 @@ function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
         i=i+1;
     end
     
-    if interrupted
-        disp('STOPPED BY KEYBOARD')
-%     else
-%         WaitSecs(Bt);
-    end
-    
-    if OneScreenFlag
-        CloseScreen
-    end
+if interrupted
+    disp('STOPPED BY KEYBOARD')
+    % Don't wait, and proceed to restore the stanby luminance as soon as
+    % possible
+    timestamps(end) = Screen('Flip', app.w);
+else
+    % Wait for the end of the last "post-grid baseline"
+    timestamps(end) = Screen('Flip', app.w, TrialStartTime(n+1));
+end
 
 %             Log writing.
     timestamps = timestamps - timZero;

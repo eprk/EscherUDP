@@ -27,19 +27,19 @@ function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
     
 %     Standby_lumi = app.StandbyL.Value;
     if equiluminantBaseline
-        equilumi = (dots_lumi+back_lumi)/2;
+        basel_lumi = (dots_lumi+back_lumi)/2;
     else
-        equilumi = back_lumi;
+        basel_lumi = back_lumi;
     end
     if CalibrationFlag
         [back_lumi,~]    = Lumi2Escher(back_lumi,app.white,app.ScreenFunc);
         [dots_lumi,~]    = Lumi2Escher(dots_lumi,app.white,app.ScreenFunc);
-        [equilumi,~]     = Lumi2Escher(equilumi,app.white,app.ScreenFunc);
+        [basel_lumi,~]     = Lumi2Escher(basel_lumi,app.white,app.ScreenFunc);
 %         [Standby_lumi,~] = Lumi2Escher(Standby_lumi,app.white,app.ScreenFunc);
     end
     back_lumi = back_lumi*app.white;
     dots_lumi = dots_lumi*app.white;
-    equilumi = equilumi*app.white;
+    basel_lumi = basel_lumi*app.white;
 %     Standby_lumi = Standby_lumi*app.white;
     
     if ~darkBack
@@ -49,16 +49,16 @@ function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
         dots_lumi = tmp;
     end
     
-%     BackgroundColor = cast(back_lumi, app.ScreenBitDepth);
-%     BaselineColor = cast(equilumi, app.ScreenBitDepth);
+    BackgroundColor = cast(back_lumi, app.ScreenBitDepth);
+%     BaselineColor = cast(basel_lumi, app.ScreenBitDepth);
 %     BaselineScreen = app.screenRect;
     
     
     if ard_flag && PcoWhileStimFlag % prepare the additional rectangle for optical synch signal
         
-        BaselineColorOff = cast([[back_lumi;back_lumi;back_lumi],[0;0;0]],...
+        BaselineColorOff = cast([[basel_lumi;basel_lumi;basel_lumi],[0;0;0]],...
                                 app.ScreenBitDepth);
-        BaselineColor    = cast([[back_lumi;back_lumi;back_lumi],[app.white; app.white; app.white]], ...
+        BaselineColor    = cast([[basel_lumi;basel_lumi;basel_lumi],[app.white; app.white; app.white]], ...
                                 app.ScreenBitDepth);
         BaselineScreen = [app.screenRect; app.HermesRect]';
         
@@ -68,13 +68,13 @@ function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
         % Hermes rectangle that is OFF (black).
 
     elseif ard_flag
-        BaselineColor     = cast([[back_lumi;back_lumi;back_lumi], [0;0;0]], ...
+        BaselineColor     = cast([[basel_lumi;basel_lumi;basel_lumi], [0;0;0]], ...
                                 app.ScreenBitDepth);
-        BaselineColor_ttl = cast([[back_lumi;back_lumi;back_lumi], [app.white;app.white;app.white]], ...
+        BaselineColor_ttl = cast([[basel_lumi;basel_lumi;basel_lumi], [app.white;app.white;app.white]], ...
                                 app.ScreenBitDepth);
         BaselineScreen = [app.screenRect; app.HermesRect]';
     else
-        BaselineColor = cast(back_lumi, app.ScreenBitDepth);
+        BaselineColor = cast(basel_lumi, app.ScreenBitDepth);
         BaselineScreen = app.screenRect;
     end
 
@@ -122,13 +122,20 @@ function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
     
     % Let's create a square screen whose edge is as long as the screen
     % diagonal (i.e. the biggest possible dimension)
-	dia = sqrt( (xmax-x0).^2 + (ymax-y0).^2); % diagonal in pixels
-    dia_deg = atand(dia/2/app.ScreenDistance.Value)*2; % diagonal in degrees of visual field
+% 	dia = sqrt( (xmax-x0).^2 + (ymax-y0).^2); % diagonal in pixels
+%     dia_deg = atand(dia/2/app.ScreenDistance.Value)*2; % diagonal in degrees of visual field
+    dia = sqrt((xmax-x0).^2 + (ymax-y0).^2); % diagonal in pixels
+    pxl_size = [app.ScreenWidth.Value, app.ScreenHeight.Value] ./ ...
+               [app.WidthPix.Value, app.HeightPix.Value];
+    dia = sqrt( ( (xmax-x0) * pxl_size(1) ).^2 + ...
+                ( (ymax-y0) * pxl_size(2) ).^2 ); % diagonal in cm
+            d = app.ScreenDistance.Value;
     
     % compute the actual number of dots based on the selected density and
     % the surface of the new square screen. This number is different than
     % the number of dots on the User Interface, which is the average number
     % of dots that are visible on the screen
+    solid_angle = screenSolidAngle(w,h,d);
     ndots = round(dens_dots * dia_deg.^2);
     
     
@@ -191,6 +198,7 @@ function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
         timZero = BaselinePresent(app.w,BaselineScreen,BaselineColor,...
             BaselineColor,ard_flag,baseline_ttl,optDtrTime);
     end
+    timOffset = timZero + Bt;
 %     Screen('FillRect', app.w, BaselineColor, BaselineScreen);
 %     if ard_flag
 %         Screen('FillRect', app.w, 0, app.HermesRect);
@@ -199,7 +207,10 @@ function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
 %     timZero = WaitSecs(0);
 %     timOffset = timZero + Bt;
     
-    TrialStartTime = timOffset+(0:n-1)*totPeriod;
+    TrialStartTime = timOffset+(0:n)*totPeriod; %Note that "TrialStartTime" has 
+        % n+1 elements. This is intended: TrialStartTime(n+1) is used to restore
+        % stanby luminance after the end of the stimulation, and it makes sure 
+        % the last "post-dots" baseline lasts as it is supposed to do.
     BaseDtrEndTime = timOffset+(0:n-1)*totPeriod+optDtrTime; % end of the optical DTR of the baseline
     timStart = timOffset+(0:n-1)*totPeriod+Pre; % start of the grid
     dtrendtime = timOffset+(0:n-1)*totPeriod+Pre+optDtrTime; % end of optical DTR for Hermes
@@ -318,15 +329,15 @@ function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
         i=i+1;
     end
     
-    if interrupted
-        disp('STOPPED BY KEYBOARD')
-%     else
-%         WaitSecs(Bt);
-    end
-    
-    if OneScreenFlag
-        CloseScreen
-    end
+if interrupted
+    disp('STOPPED BY KEYBOARD')
+    % Don't wait, and proceed to restore the stanby luminance as soon as
+    % possible
+    timestamps(end) = Screen('Flip', app.w);
+else
+    % Wait for the end of the last "post-grid baseline"
+    timestamps(end) = Screen('Flip', app.w, TrialStartTime(n+1));
+end
 
 %             Log writing.
     timestamps = timestamps - timZero;

@@ -3,17 +3,7 @@ function [order,timestamps] = ReceptiveFieldPresent(app,ParameterVector)
     % number of squares
     n_spots       = nrows*ncols;
     indices         = cat(1,ParameterVector{ 9 : 9 + n_spots });
-    % last parameters
-    [PcoWhileStimFlag,OneScreenFlag,CalibrationFlag,...
-	      ard_flag,~,oculusFlag,~] = ParameterVector{9 + n_spots +1 : end};
-
-    if PcoWhileStimFlag
-        warning('PcoWhileStimFlag=true not supported for "ReceptiveFieldPresent" yet!')
-    end
-    if oculusFlag
-        warning('oculusFlag=true not supported for "ReceptiveFieldPresent" yet!')
-    end
-
+    [OneScreenFlag,CalibrationFlag,ard_flag] = ParameterVector{:};
     % Blumi: baseline luminance
     % Slumi: stimulus luminance
     % Bt: baseline time (s)

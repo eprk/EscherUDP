@@ -1,6 +1,6 @@
 function [timestamps, interrupted] = RetinotopyPresent(app,ParameterVector)
-    [Blumi,Slumi,Glumi,sF,Bt,p,Angle,RectangleSizeDeg,dS,PostG,n,...
-        TrialDeadTime,OneScreenFlag,CalibrationFlag,ard_flag,...
+    [Blumi,Slumi,Glumi,sF,Bt,p,Angle,RectangleSizeDeg,dS,PostG,n,TrialDeadTime,...
+        PcoWhileStimFlag,OneScreenFlag,CalibrationFlag,ard_flag,...
         baseline_ttl,oculusFlag,optDtrTime] = ParameterVector{:};
     
     if OneScreenFlag
@@ -19,12 +19,16 @@ function [timestamps, interrupted] = RetinotopyPresent(app,ParameterVector)
         [Blumi,~] = Lumi2Escher(Blumi,app.white,app.ScreenFunc);
         [Slumi,~] = Lumi2Escher(Slumi,app.white,app.ScreenFunc);
         [Glumi,~] = Lumi2Escher(Glumi,app.white,app.ScreenFunc);
+        StandbyLumi = Lumi2Escher(app.StandbyL.Value,app.white,app.ScreenFunc);
+    else
+        StandbyLumi = app.StandbyL.Value;
     end
+    
     % Next lines: insert the LUT correction
     Blumi = app.white*Blumi; % Luminance expressed as fractions of 'white'
     Slumi = app.white*Slumi;
     Glumi = app.white*Glumi;
-
+    StandbyLumi = app.white*StandbyLumi;
     
     %             The stimulus has to be prepared BEFORE the conversion to the
     %             calibrated look up table
@@ -43,6 +47,8 @@ function [timestamps, interrupted] = RetinotopyPresent(app,ParameterVector)
         BaselineColorDtrOff = cast([[Glumi;Glumi;Glumi], [0;0;0]], app.ScreenBitDepth);
         BaselineColorDtrOn = cast([[Glumi;Glumi;Glumi], [app.white;app.white;app.white]], app.ScreenBitDepth);
         BaselineScreen = [app.screenRect; app.HermesRect]';
+        StandbyColor = cast([[StandbyLumi;StandbyLumi;StandbyLumi], [0;0;0]], ...
+            app.ScreenBitDepth);
     else
         BaselineColorDtrOff = cast(Glumi, app.ScreenBitDepth);
         BaselineColorDtrOn = BaselineColorDtrOff;
@@ -173,8 +179,9 @@ function [timestamps, interrupted] = RetinotopyPresent(app,ParameterVector)
     DtrEndTime = TrialStartTime+optDtrTime;
     TravelStartTime = TrialStartTime + PostG - TrialDeadTime;
     TravelEndTime = TravelStartTime + TravelTime; % end of the drift, then comes the baseline
+    time_finalBaseline = timOffset + n*totPeriod;
     
-i = 1;
+    i = 1;
 % detectKeyboard is used to stop the visual stimulation by pressing the
 % keys "stop" on the keyboard for a while. If detectKeyboard returns a true
 % value, the loop stops and the function returns prematurely.
@@ -249,11 +256,15 @@ i = 1;
         Screen('Flip', app.w);
         i=i+1;
     end
+    % end of stimulation loop
     
+    % Prepare baseline (standby) after stimulation
+    Screen('FillRect', app.w, StandbyColor, BaselineScreen)
     if interrupted
         disp('STOPPED BY KEYBOARD')
-%     else
-%     WaitSecs(Bt);        
+        timestamps(end) = Screen('Flip', app.w);
+    else
+        timestamps(end) = Screen('Flip', app.w, time_finalBaseline);
     end
 
 %                 Is closing the textures really necessary?

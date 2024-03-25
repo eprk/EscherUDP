@@ -43,13 +43,19 @@ function [timestamps, interrupted] = SlowFlashPresent(app,ParameterVector)
     if CalibrationFlag
         [Blumi,~] = Lumi2Escher(Blumi,app.white,app.ScreenFunc);
         [Slumi,~] = Lumi2Escher(Slumi,app.white,app.ScreenFunc);
+        StandbyLumi = Lumi2Escher(app.StandbyL.Value,app.white,app.ScreenFunc);
+    else
+        StandbyLumi = app.StandbyL.Value;
     end
 
     Blumi = app.white*Blumi;             % Luminance expressed as fractions of 'white'
     Slumi = app.white*Slumi;
-
+    StandbyLumi = app.white*StandbyLumi;
+    
     %             New part. Enrico 2019/05/24
     if ard_flag
+        StandbyColor = cast([[StandbyLumi;StandbyLumi;StandbyLumi], [0;0;0]], ...
+            app.ScreenBitDepth);
         BaselineColor = cast([[Blumi;Blumi;Blumi], [0;0;0]], app.ScreenBitDepth);
         BaselineColor_ttl = cast([[Blumi;Blumi;Blumi], [app.white;app.white;app.white]], app.ScreenBitDepth);
         StimColor = cast([[Slumi;Slumi;Slumi], [0;0;0]], app.ScreenBitDepth);
@@ -88,12 +94,13 @@ function [timestamps, interrupted] = SlowFlashPresent(app,ParameterVector)
     timestamps(1) = timZero;
     
     % Compute relevant timepoints
-    time_flashON   = timZero + Bt + (0:n-1) * p;
-    time_flashOFF  = timZero + Bt + (0:n-1) * p + St;
+    time_flashON   = timOffset + (0:n-1) * p;
+    time_flashOFF  = timOffset + (0:n-1) * p + St;
     if ard_flag
-        time_flashON_ttlOFF  = timZero + Bt + (0:n-1) * p + optDtrTime;
-        time_flashOFF_ttlOFF = timZero + Bt + (0:n-1) * p + St + optDtrTime;
+        time_flashON_ttlOFF  = timOffset + (0:n-1) * p + optDtrTime;
+        time_flashOFF_ttlOFF = timOffset + (0:n-1) * p + St + optDtrTime;
     end
+    time_finalBaseline = timOffset + n.*p;
     
     i = 1;
     % detectKeyboard is used to stop the visual stimulation by pressing the
@@ -155,11 +162,15 @@ function [timestamps, interrupted] = SlowFlashPresent(app,ParameterVector)
         
         i = i+1;
     end
+    % end of stimulation loop
     
+    % Prepare baseline (standby) after stimulation
+    Screen('FillRect', app.w, StandbyColor, cellRects)
     if interrupted
         disp('STOPPED BY KEYBOARD')
-%     else
-%     WaitSecs(Bt);        
+        timestamps(end) = Screen('Flip', app.w);
+    else
+        timestamps(end) = Screen('Flip', app.w, time_finalBaseline);
     end
     
     if OneScreenFlag

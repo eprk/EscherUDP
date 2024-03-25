@@ -37,7 +37,6 @@ function [timestamps,interrupted] = CheckPresent(app,ParameterVector)
     Blumi = app.white*Blumi; % Luminance expressed as fractions of 'white'
     Slumi = app.white*Slumi;
     Glumi = app.white*Glumi;
-    StandbyLumi = app.white*StandbyLumi;
     
 % The parameter sF is the spatial frequency in cycles/degree.
 % The spatial frequency of the stimulus in cycles/pixel is calculated.
@@ -121,15 +120,12 @@ function [timestamps,interrupted] = CheckPresent(app,ParameterVector)
             app.ScreenBitDepth);
         BaselineColor = cast([[Glumi;Glumi;Glumi], [0;0;0]], ...
             app.ScreenBitDepth);
-        StandbyColor = cast([[StandbyLumi;StandbyLumi;StandbyLumi], [0;0;0]], ...
-            app.ScreenBitDepth);
         BaselineRect = [app.screenRect; app.HermesRect]';
         
         cellColor1Off = [cellColor1On, [0; 0; 0]];
         cellColor2Off = [cellColor2On, [0; 0; 0]];
         cellColor1On = [cellColor1On, [app.white; app.white; app.white]];
         cellColor2On = [cellColor2On, [app.white; app.white; app.white]];
-        
         cellRects = [cellRects; app.HermesRect]';
     else
         BaselineColor = cast(Glumi, app.ScreenBitDepth);
@@ -209,7 +205,7 @@ function [timestamps,interrupted] = CheckPresent(app,ParameterVector)
     end
     
     % Paints the rectangle (entire screen) with equiluminant gray.
-    Screen('FillRect', app.w, StandbyColor, BaselineRect)
+    Screen('FillRect', app.w, BaselineColor, BaselineRect)
     t_end=Screen('Flip', app.w, timZero+Bt+2*n*p);
     timestamps(2*n+2)=t_end;
     

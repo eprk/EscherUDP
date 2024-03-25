@@ -31,7 +31,6 @@ function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
     else
         basel_lumi = back_lumi;
     end
-    Standby_lumi = app.StandbyL.Value;
     if CalibrationFlag
         [back_lumi,~]    = Lumi2Escher(back_lumi,app.white,app.ScreenFunc);
         [dots_lumi,~]    = Lumi2Escher(dots_lumi,app.white,app.ScreenFunc);
@@ -78,7 +77,7 @@ function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
                                 app.ScreenBitDepth);
         BaselineScreen = [app.screenRect; app.HermesRect]';
         
-        StandbyColor = cast([[Standby_lumi;Standby_lumi;Standby_lumi], [0;0;0]], ...
+        StandbyColor = cast([[StandbyLumi;StandbyLumi;StandbyLumi], [0;0;0]], ...
             app.ScreenBitDepth);
         StandbyScreen = [app.screenRect; app.HermesRect]';
         
@@ -86,7 +85,8 @@ function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
         BaselineColor = cast(basel_lumi, app.ScreenBitDepth);
         BaselineScreen = app.screenRect;
         
-        StandbyColor = cast(Standby_lumi, app.ScreenBitDepth);
+        StandbyColor = cast([[StandbyLumi;StandbyLumi;StandbyLumi], [0;0;0]], ...
+            app.ScreenBitDepth);
         StandbyScreen = app.screenRect;
     end
 
@@ -339,19 +339,17 @@ function [timestamps, interrupted] = DotsPresent(app,ParameterVector)
     
         i=i+1;
     end
-    % End of the stimulation loop
     
-    Screen('FillRect',app.w,StandbyColor,StandbyScreen)
-    if interrupted
-        disp('STOPPED BY KEYBOARD')
-        % Don't wait, and proceed to restore the stanby luminance as soon as
-        % possible
-        timestamps(end) = Screen('Flip', app.w);
-    else
-        % Wait for the end of the last "post-grid baseline"
-        timestamps(end) = Screen('Flip', app.w, TrialStartTime(n+1));
-    end
-    
-    %             Log writing.
+if interrupted
+    disp('STOPPED BY KEYBOARD')
+    % Don't wait, and proceed to restore the stanby luminance as soon as
+    % possible
+    timestamps(end) = Screen('Flip', app.w);
+else
+    % Wait for the end of the last "post-grid baseline"
+    timestamps(end) = Screen('Flip', app.w, TrialStartTime(n+1));
+end
+
+%             Log writing.
     timestamps = timestamps - timZero;
 end

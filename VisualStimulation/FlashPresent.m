@@ -2,7 +2,7 @@ function [timestamps, interrupted] = FlashPresent(app,ParameterVector)
     % oculusFlag and optDtrTime are always the last 2 elements of part of
     % ParamterVector. Since they're not needed in this function, they are
     % discarded with ~.
-    [Blumi,Slumi,Bt,St,p,n,bsl_check,OneScreenFlag,CalibrationFlag,ard_flag,...
+    [Blumi,Slumi,Bt,St,p,n,bsl_check,PcoWhileStimFlag,OneScreenFlag,CalibrationFlag,ard_flag,...
         baseline_ttl,oculus,optDtrTime] = ParameterVector{:};
 
 %             Starts the OpenGL session if in single screen mode
@@ -15,13 +15,19 @@ function [timestamps, interrupted] = FlashPresent(app,ParameterVector)
     if CalibrationFlag
         [Blumi,~] = Lumi2Escher(Blumi,app.white,app.ScreenFunc);
         [Slumi,~] = Lumi2Escher(Slumi,app.white,app.ScreenFunc);
+        StandbyLumi = Lumi2Escher(app.StandbyL.Value,app.white,app.ScreenFunc);
+    else
+        StandbyLumi = app.StandbyL.Value;
     end
 
     Blumi = app.white*Blumi;             % Luminance expressed as fractions of 'white'
     Slumi = app.white*Slumi;
-
+    StandbyLumi = app.white*StandbyLumi;
+    
     %             New part. Enrico 2019/05/24
     if ard_flag
+        StandbyColor = cast([[StandbyLumi;StandbyLumi;StandbyLumi], [0;0;0]], ...
+            app.ScreenBitDepth);
         BaselineColor = cast([[Blumi;Blumi;Blumi], [0;0;0]], app.ScreenBitDepth);
         BaselineColor_ttl = cast([[Blumi;Blumi;Blumi], [app.white;app.white;app.white]], app.ScreenBitDepth);
         StimColor = cast([[Slumi;Slumi;Slumi], [app.white;app.white;app.white]], app.ScreenBitDepth);
@@ -94,11 +100,10 @@ function [timestamps, interrupted] = FlashPresent(app,ParameterVector)
     end
     
     % Prepare baseline (standby) after stimulation
-    Screen('FillRect', app.w, BaselineColor, cellRects)
-    
+    Screen('FillRect', app.w, StandbyColor, cellRects)
     if interrupted
         disp('STOPPED BY KEYBOARD')
-        timestamps(end) = Screen('Flip');
+        timestamps(end) = Screen('Flip', app.w);
     else
         timestamps(end) = Screen('Flip', app.w, time_finalBaseline);
     end

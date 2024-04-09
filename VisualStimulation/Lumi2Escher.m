@@ -1,4 +1,5 @@
 function [escherValues,TrueLumiValues] = Lumi2Escher(lumiValues,whiteValue,formulaTxt)
+
 % First of all, we need the gamma correction function of the screen
     screenFunc = str2func(formulaTxt);
 % Let's generate a vector of all possible values of escher, considering 
@@ -10,9 +11,8 @@ function [escherValues,TrueLumiValues] = Lumi2Escher(lumiValues,whiteValue,formu
 % Now we generate a vector of all possible luminances that can be generated
 % by Escher through psychtoolbox, by using the screen calibration function.
     allLumiY = screenFunc(allEscherX);
-% We look for the index of the value on the allLumiY vector that is close 
-% to "lumivalue" (our input).
-
+% We look for the index of the value on the allLumiY vector that is closer 
+% to "lumiValues" (our inputs).
     dim=size(lumiValues);
     lumiValues_vector=reshape(lumiValues,1,[]);
     tmpValues = abs(allLumiY-lumiValues_vector);
@@ -23,4 +23,5 @@ function [escherValues,TrueLumiValues] = Lumi2Escher(lumiValues,whiteValue,formu
     escherValues = reshape(escherValues,dim);
 % Also the true luminance value is returned.
     TrueLumiValues = reshape(allLumiY(Idx),dim);
+    
 end

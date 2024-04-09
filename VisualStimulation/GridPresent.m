@@ -74,15 +74,26 @@ end
 % The spatial frequency of the stimulus in cycles/pixel is calculated.
 f = app.OnePxAngle*sF;
 
+if app.BLUEMODEButton.Value
+    % BLUE MODE is on: apply a "blue mask", setting red and green subpixels
+    % to zero.
+    colormask = [0; 0; 1];
+else
+    % Otherwise, don't alter pixel values.
+    colormask = [1; 1; 1];
+end
+
 % The stimulus has to be prepared BEFORE the conversion to the
 % calibrated look up table
 % ENRICO 2018/05/02 Let's prepare the gratings and masks in
 % advance
 % GAB 2023/01/22: first, prepare all the n gratings
-gratings = CreateGratings(app, Glumi, inc, f, gridType, CalibrationFlag);
+gratings = CreateGratings(app, Glumi, inc, f, gridType, CalibrationFlag, colormask);
 % GAB 2023/01/22: then, prepare the two masks (gaussian
 % blur and optical dtr).
 masks = CreateMasks(app, Glumi, MaskFlag, GaussSize,ard_flag);
+
+
 
 % This calibration shouldn't be performed before this point, because
 % the luminance is needed as a non-corrected value for the
@@ -92,17 +103,18 @@ if CalibrationFlag
     [Glumi,~] = Lumi2Escher(Glumi,app.white,app.ScreenFunc);
     [Standby_lumi,~] = Lumi2Escher(Standby_lumi,app.white,app.ScreenFunc);
 end
-Glumi = Glumi*app.white;
-Standby_lumi = app.white*Standby_lumi;
+Glumi = ones(3,1)*Glumi*app.white.*colormask;
+Standby_lumi = ones(3,1)*Standby_lumi*app.white.*colormask;
+
 
 if ard_flag && PcoWhileStimFlag % prepare the additional rectangle for optical synch signal
     if dark_bsl
-        BaselineColorOff = cast([[Standby_lumi;Standby_lumi;Standby_lumi], [0;0;0]], app.ScreenBitDepth);
-        BaselineColor = cast([[Standby_lumi;Standby_lumi;Standby_lumi], [app.white; app.white; app.white]], ...
+        BaselineColorOff = cast([Standby_lumi, [0;0;0]], app.ScreenBitDepth);
+        BaselineColor = cast([Standby_lumi, [app.white; app.white; app.white]], ...
             app.ScreenBitDepth);
     else
-        BaselineColorOff = cast([[Glumi;Glumi;Glumi], [0;0;0]], app.ScreenBitDepth);
-        BaselineColor = cast([[Glumi;Glumi;Glumi], [app.white; app.white; app.white]], ...
+        BaselineColorOff = cast([Glumi, [0;0;0]], app.ScreenBitDepth);
+        BaselineColor = cast([Glumi, [app.white; app.white; app.white]], ...
             app.ScreenBitDepth);
     end
     BaselineScreen = [app.screenRect; app.HermesRect]';
@@ -123,11 +135,11 @@ if ard_flag && PcoWhileStimFlag % prepare the additional rectangle for optical s
     % end
 elseif ard_flag
     if dark_bsl
-        BaselineColor = cast([[Standby_lumi;Standby_lumi;Standby_lumi], [0;0;0]], app.ScreenBitDepth);
-        BaselineColor_ttl = cast([[Standby_lumi;Standby_lumi;Standby_lumi], [app.white;app.white;app.white]], app.ScreenBitDepth);
+        BaselineColor = cast([Standby_lumi, [0;0;0]], app.ScreenBitDepth);
+        BaselineColor_ttl = cast([Standby_lumi, [app.white;app.white;app.white]], app.ScreenBitDepth);
     else
-        BaselineColor = cast([[Glumi;Glumi;Glumi], [0;0;0]], app.ScreenBitDepth);
-        BaselineColor_ttl = cast([[Glumi;Glumi;Glumi], [app.white;app.white;app.white]], app.ScreenBitDepth);
+        BaselineColor = cast([Glumi, [0;0;0]], app.ScreenBitDepth);
+        BaselineColor_ttl = cast([Glumi, [app.white;app.white;app.white]], app.ScreenBitDepth);
     end
     BaselineScreen = [app.screenRect; app.HermesRect]';
 else
@@ -136,7 +148,7 @@ else
     else
         BaselineColor = cast(Glumi, app.ScreenBitDepth);
     end
-    BaselineScreen = app.screenRect;
+    BaselineScreen = app.screenRect';
 end
 
 % Before starting we need to compute some parameters needed for
@@ -173,17 +185,17 @@ p = 1./f;  % pixels/cycle
 % directionat each redraw:
 shiftperframe = dS * p * waitduration;
 % Prepare the grating textures in advance.
-%     TexStruct = CreateTextures(app, GratingStruct);
 gratings_texture = zeros(1,n);
 for i=1:n
-    gratings_texture(i) = Screen('MakeTexture', app.w, gratings(:,:,i));
+    gratings_texture(i) = Screen('MakeTexture', app.w, gratings(:,:,:,i));
 end
 mask_texture = CreateTextures(app, masks);
 %     After creating the textures, if the VR headset is being used, we have
 %     to double the texture and the angle
 sR = app.screenRect;
 % Save the dimension of the grating mask:
-LargestDim = ceil(sqrt(sR(3)^2+sR(4)^2));
+LargestDim = ceil(sqrt(sR(3)^2+sR(4)^2))+max(p);
+% LargestDim = ceil(sqrt(sR(3)^2+sR(4)^2));
 
 if ~oculusFlag
     %         dstRect = CenterRect([0, 0, ceil(sqrt(sR(3)^2+sR(4)^2)), ceil(sqrt(sR(3)^2+sR(4)^2))], sR);
@@ -298,7 +310,7 @@ while i <= n && ~interrupted
         %     can run the script "DriftTexturePrecisionTest" to test your
         %     hardware...
         xoffset = mod(ii*shiftperframe(i), p(i));
-        
+%         fprintf('displacement = %.2f pxl; period = %.2f pxl.\n',xoffset, p(i))
         %     Define shifted srcRect that cuts out the properly shifted rectangular
         %     area from the texture: We cut out the range 0 to visiblesize in
         %     the vertical direction although the texture is only 1 pixel in
@@ -333,9 +345,9 @@ while i <= n && ~interrupted
             %         [srcRect', sR', sR'],...
             %         [CenterRect(dstRect,sR)', sR', sR'], [180-Angle, 0, 0],[],[],[],[],0);
             Screen('DrawTextures', app.w,...
-    [gratings_texture(i), mask_texture.GaussMask, mask_texture.DtrOnMask],...
-    [srcRect', sR', sR'],...
-    [CenterRect(dstRect,sR)', sR', sR'], [180 - Angle(i), 0, 0],[],[],[],[],0);
+                [gratings_texture(i), mask_texture.GaussMask, mask_texture.DtrOnMask],...
+                [srcRect', sR', sR'],...
+                [CenterRect(dstRect,sR)', sR', sR'], [180 - Angle(i), 0, 0],[],[],[],[],0);
         else
             %         This is the grating when the optical DTR has to be
             %         black.
@@ -353,9 +365,9 @@ while i <= n && ~interrupted
             %         [srcRect', sR', sR'],...
             %         [CenterRect(dstRect,sR)', sR', sR'], [180-Angle, 0, 0],[],[],[],[],0);
             Screen('DrawTextures', app.w,...
-    [gratings_texture(i), mask_texture.GaussMask, mask_texture.DtrOffMask],...
-    [srcRect', sR', sR'],...
-    [CenterRect(dstRect,sR)', sR', sR'], [180 - Angle(i), 0, 0],[],[],[],[],0);
+                [gratings_texture(i), mask_texture.GaussMask, mask_texture.DtrOffMask],...
+                [srcRect', sR', sR'],...
+                [CenterRect(dstRect,sR)', sR', sR'], [180 - Angle(i), 0, 0],[],[],[],[],0);
             
         end
         
@@ -399,7 +411,7 @@ Screen('Close',mask_texture.DtrOffMask)
 
 % Set back stadby luminance
 if ard_flag
-    BaselineColor = cast([[Standby_lumi;Standby_lumi;Standby_lumi], [0;0;0]], app.ScreenBitDepth);
+    BaselineColor = cast([Standby_lumi, [0;0;0]], app.ScreenBitDepth);
     cellRects = [app.screenRect; app.HermesRect]';
 else
     BaselineColor = cast(Standby_lumi, app.ScreenBitDepth);
@@ -428,7 +440,7 @@ timestamps = timestamps - timZero;
 end
 
 
-function grating = CreateGratings(app, Glumi, inc, f, gridType,CalibrationFlag)
+function grating = CreateGratings(app, Glumi, inc, f, gridType,CalibrationFlag,colormask)
 % this function creates the grid texture (either square of sinusoidal grid)
 % of frequency f and the Gaus mask of size GaussSize
 % The original outputs were [gratingsize, visiblesize, gratingtex,
@@ -491,10 +503,6 @@ else
     end
 end
 
-
-
-
-
 if CalibrationFlag
     %         tic
     %         grating = arrayfun(@(x) Lumi2Escher(x,app.white,app.ScreenFunc), grating, 'un',1);
@@ -512,14 +520,21 @@ end
 %     Glumi = app.white * Glumi;
 % Convert grating to values from 0 to app.white (usually 255)
 grating = grating.*app.white;
-
-% Here it could be possible not to execute this block and let the graphic card repeat the grating.
-% Instead, we create a full 2-D grating.
-%     Vertically stacks the row vector "grating" a number of
-%     times equal to its length. "grating" becomes a square
-%     matrix.
 grating = cast(grating, app.ScreenBitDepth);
-grating = reshape(repmat(grating(:),1,nx)',nx,nx,n);
+% here grating dimensions are pixels * n_stimuli
+
+% Make gratings 4D matrix whose dimensions are:
+% -1: y pixels. For the moment its size is 1
+% -2: x pixels. Its size is nx
+% -3: RGB values. Its size is 3
+% -4: n_stimuli. Its size is n
+grating = reshape( repmat( grating, 3, 1), 1, nx, 3, n);
+
+% Fill the y dimension repeating the same line
+grating = repmat(grating, nx, 1, 1, 1);
+
+% Apply the blue mask
+grating = grating .* reshape( uint8(colormask), 1, 1, 3, 1);
 end
 
 function MaskStruct=CreateMasks(app, Glumi, MaskFlag, GaussSize,ard_flag)

@@ -2,8 +2,10 @@ function [timestamps,interrupted] = MyFunction(app,ParameterVector)
     % The input variables are:
     % app, the handle for the app
     % ParameterVector, a cell array containing all the parameters
-    [var1,var2,varN] = ParameterVector{:};
-    
+    [var1,var2,varN] = ParameterVector{1:length(ParameterVector)-7};
+    % The last 7 must be the following ones:
+    [PcoWhileStimFlag,OneScreenFlag,CalibrationFlag,...
+        ard_flag,baseline_ttl,oculusFlag,optDtrTime] = ParameterVector{length(ParameterVector)-6:end};
     
     % Prepare what you need here
     

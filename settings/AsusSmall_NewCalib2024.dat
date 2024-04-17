@@ -1,0 +1,2 @@
+name,width,height,formula,formula_blue,notes
+AsusSmall_NewCalib2024,34.4,19.4,@(x)(0.234+21.28.*x.^1.997),@(x)(0.09109+2.267.*x.^2.035),?

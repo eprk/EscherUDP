@@ -337,8 +337,16 @@ void assignParsedStr(String substr){
 
   if(sub1.equals("cal")){
     // calibration
-    if(sub2.equals("w")) calibrate_white();
-    if(sub2.equals("b")) calibrate_black();
+    if(sub2.equals("w")) {
+      Serial.println("Roger roger");
+      calibrate_white();
+      Serial.println("White calibration done");
+    }
+    if(sub2.equals("b")) {
+      Serial.println("Roger roger");
+      calibrate_black();
+      Serial.println("Black calibration done");
+    }
     compute_threshold();
   }
 

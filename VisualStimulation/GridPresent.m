@@ -375,10 +375,11 @@ while i <= n && ~interrupted
         %     Providing this 'when' timestamp allows for optimal timing
         %     precision in stimulus onset, a stable animation framerate and at
         %     the same time allows the built-in "skipped frames" detector to
-        %     work optimally and report skipped frames due to hardware
+        %     work optimally and report skipped frames due to
+        %     hardwarestoppp
         %     overload:
         vbl = Screen('Flip', app.w, vbl + (waitframes - 0.5) * app.ifi);
-        interrupted = detectKeyboard();
+        interrupted = interrupted || detectKeyboard();
         
         %     ENRICO. Removed.
         %     % Abort function if any key is pressed:

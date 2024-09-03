@@ -83,7 +83,9 @@ function timestamps = FlashPresent(app,ParameterVector)
         
         i = i+1;
     end
-    WaitSecs(Bt);
+%     WaitSecs(Bt);
+    Screen('FillRect', app.w, BaselineColor, cellRects)
+    Screen('Flip', app.w, timOffset + n * p);
     
     if OneScreenFlag
         CloseScreen

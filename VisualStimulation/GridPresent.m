@@ -119,20 +119,6 @@ if ard_flag && PcoWhileStimFlag % prepare the additional rectangle for optical s
     end
     BaselineScreen = [app.screenRect; app.HermesRect]';
     
-    % In case that PCO recording is used, the baseline also needs to trigger
-    % Hermes. So BaselineColor will contain the baseline with a Hermes
-    % rectangle that is ON (white), whereas BaselineColorOff will contain a
-    % Hermes rectangle that is OFF (black).
-    % if PcoWhileStimFlag
-    %   BaselineColorOff = BaselineColor;
-    %   if dark_bsl
-    %     BaselineColor = cast([[Standby_lumi;Standby_lumi;Standby_lumi], ...
-    %         [app.white;app.white;app.white]], app.ScreenBitDepth);
-    %   else
-    %     BaselineColor = cast([[Glumi;Glumi;Glumi], ...
-    %         [app.white;app.white;app.white]], app.ScreenBitDepth);
-    %   end
-    % end
 elseif ard_flag
     if dark_bsl
         BaselineColor = cast([Standby_lumi, [0;0;0]], app.ScreenBitDepth);

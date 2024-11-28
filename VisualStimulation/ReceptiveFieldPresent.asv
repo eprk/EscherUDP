@@ -121,11 +121,8 @@ i = 1;
 interrupted = false;
 while i <= n && ~interrupted
 % for i=1:n
-    j=1;
-    while j <= n_spots && ~interrupted
-%     for j=1:n_spots    
-        interrupted = detectKeyboard();
-
+    
+    for j=1:n_spots
         % Wait for the end of the period. For the first period,
         % it just waits for the end of the baseline.
         timStart = timOffset + (i-1)*n_spots*p + (j-1) * p;
@@ -139,9 +136,7 @@ while i <= n && ~interrupted
         % the flash is complete
         Screen('FillRect', app.w, BaselineColor, cellRects); % paint the rectangle (entire screen)
         timestamps((i-1)*n_spots+j,2) = Screen('Flip', app.w, timEnd); % wait for the end of stim
-        j=j+1;
     end
-    i=i+1;
 end
 
 % Prepare baseline (standby) after stimulation

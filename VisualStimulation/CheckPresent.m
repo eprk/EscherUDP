@@ -26,10 +26,10 @@ end
 if app.BLUEMODEButton.Value
     % BLUE MODE is on: apply a "blue mask", setting red and green subpixels
     % to zero.
-    colormask = cast([0; 0; 1],app.ScreenBitDepth);
+    colormask = [0; 0; 1];
 else
     % Otherwise, don't alter pixel values.
-    colormask = cast([1; 1; 1],app.ScreenBitDepth);
+    colormask = [1; 1; 1];
 end
 
 if CalibrationFlag
@@ -122,19 +122,19 @@ end
 
 % next lines generate square colors. Colors are stored in a 3xN matrix,
 % where N is the number of squares.
-cellColor1On = ones(3,ntot, app.ScreenBitDepth) .* Slumi  .* colormask;
-cellColor2On = (zeros(3,ntot, app.ScreenBitDepth) + Blumi).* colormask;
-cellColor1On(1:3,1:2:ntot) = repmat(Blumi.* colormask,1,numel(1:2:ntot));
-cellColor2On(1:3,1:2:ntot) = repmat(Slumi.* colormask,1,numel(1:2:ntot));
+cellColor1On = cast(  ones(3,ntot) .* Slumi  .* colormask, app.ScreenBitDepth);
+cellColor2On = cast( (zeros(3,ntot) + Blumi) .* colormask, app.ScreenBitDepth);
+cellColor1On(1:3,1:2:ntot) = cast( repmat(Blumi.* colormask, 1, numel(1:2:ntot)), app.ScreenBitDepth);
+cellColor2On(1:3,1:2:ntot) = cast( repmat(Slumi.* colormask, 1, numel(1:2:ntot)), app.ScreenBitDepth);
 
 %             New part. Enrico 2019/05/24
 if ard_flag
-    BaselineColor_ttl = cast([[Glumi;Glumi;Glumi], [app.white; app.white; app.white]], ...
-        app.ScreenBitDepth) .* colormask;
-    BaselineColor = cast([[Glumi;Glumi;Glumi], [0;0;0]], ...
-        app.ScreenBitDepth) .* colormask;
-    StandbyColor = cast([[StandbyLumi;StandbyLumi;StandbyLumi], [0;0;0]], ...
-        app.ScreenBitDepth) .* colormask;
+    BaselineColor_ttl = cast([[Glumi;Glumi;Glumi] .* colormask, [app.white; app.white; app.white]], ...
+        app.ScreenBitDepth);
+    BaselineColor = cast([[Glumi;Glumi;Glumi] .* colormask, [0;0;0]], ...
+        app.ScreenBitDepth);
+    StandbyColor = cast([[StandbyLumi;StandbyLumi;StandbyLumi] .* colormask, [0;0;0]], ...
+        app.ScreenBitDepth);
     BaselineRect = [app.screenRect; app.HermesRect]';
     
     cellColor1Off = [cellColor1On, cast([0; 0; 0],app.ScreenBitDepth)];
@@ -144,7 +144,7 @@ if ard_flag
     
     cellRects = [cellRects; app.HermesRect]';
 else
-    BaselineColor = cast([Glumi;Glumi;Glumi], app.ScreenBitDepth) .* colormask;
+    BaselineColor = cast([Glumi;Glumi;Glumi] .* colormask, app.ScreenBitDepth);
     BaselineRect = app.screenRect';
     BaselineColor_ttl = [];
     cellRects = cellRects';
